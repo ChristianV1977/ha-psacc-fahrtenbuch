@@ -22,8 +22,8 @@ export const ELEMENTS = {
 
 /** Positionen (Mitte des Elements) in % der Bildflaeche. */
 export const LAYOUT = {
-  climate: { x: 10, y: 11 },
-  plug: { x: 90, y: 11 },
+  // A/C (links) und Stecker (rechts) in einer Zeile: gleiche Oberkante, nah an der Kopfzeile (% der Bildgroesse)
+  symbols: { top: 2, side: 6 },
   nodata: { x: 50, y: 50 },
   // Reichweite, Ladestand und Ladelimit: ein gemeinsamer, rechtsbuendiger Block (Abstaende in % der Kartengroesse)
   stack: { right: 8, bottom: 4 },
@@ -31,6 +31,11 @@ export const LAYOUT = {
 };
 
 const BAD = new Set(["unavailable", "unknown", undefined, null, ""]);
+
+/** CSS-Position der Symbolzeile oben im Bild (A/C links, Stecker rechts, gleiche Oberkante). */
+export function symbolsStyle(layout = LAYOUT) {
+  return `top:${layout.symbols.top}%;left:${layout.symbols.side}%;right:${layout.symbols.side}%;`;
+}
 
 /** CSS-Position des rechtsbuendigen Blocks unten rechts. */
 export function stackStyle(layout = LAYOUT) {
@@ -289,11 +294,13 @@ if (typeof window !== "undefined" && typeof customElements !== "undefined") {
             ${head.info ? html`<span class="info">${head.info}</span>` : ""}</div>` : ""}
           <div class="frame" style="background-image:url('${image}')">
             ${nodata ? html`<div class="el text big" style=${this._pos("nodata")}>Keine Fahrzeugdaten</div>` : ""}
-            ${c.show_climate && ids.climate ? html`<div class="el icon ${dim}" style=${this._pos("climate", nodata ? "pointer-events:none;" : "")}
-                @pointerdown=${climate.onpointerdown} @pointerup=${climate.onpointerup} @pointerleave=${climate.onpointerleave}>
-              <ha-icon icon="mdi:air-conditioner" style="color:${isValid(S.climate) ? (S.climate.state === "on" ? "var(--primary-color, #03a9f4)" : "#fff") : grey}"></ha-icon></div>` : ""}
-            ${c.show_plug && ids.plug ? html`<div class="el icon ${dim}" style=${this._pos("plug")} @click=${() => this._moreInfo("plug")}>
-              <ha-icon icon="mdi:ev-plug-type2" style="color:${plugColor(S.plug, S.charge_status)}"></ha-icon></div>` : ""}
+            ${(c.show_climate && ids.climate) || (c.show_plug && ids.plug) ? html`<div class="symbols" style=${symbolsStyle()}>
+              ${c.show_climate && ids.climate ? html`<div class="icon ${dim}" style=${nodata ? "pointer-events:none;" : ""}
+                  @pointerdown=${climate.onpointerdown} @pointerup=${climate.onpointerup} @pointerleave=${climate.onpointerleave}>
+                <ha-icon icon="mdi:air-conditioner" style="color:${isValid(S.climate) ? (S.climate.state === "on" ? "var(--primary-color, #03a9f4)" : "#fff") : grey}"></ha-icon></div>` : html`<span></span>`}
+              ${c.show_plug && ids.plug ? html`<div class="icon ${dim}" @click=${() => this._moreInfo("plug")}>
+                <ha-icon icon="mdi:ev-plug-type2" style="color:${plugColor(S.plug, S.charge_status)}"></ha-icon></div>` : ""}
+            </div>` : ""}
             ${(c.show_range && ids.range) || (c.show_soc && ids.soc) || (c.show_limit && ids.limit) ? html`<div class="stack" style=${stackStyle()}>
               ${c.show_range && ids.range ? html`<div class="row text ${dim}" @click=${() => this._moreInfo("range")}>
                 ${this._val("range", 0)}</div>` : ""}
@@ -313,7 +320,9 @@ if (typeof window !== "undefined" && typeof customElements !== "undefined") {
       static get styles() {
         return css`
           ha-card { overflow: hidden; }
-          .head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 2px 12px; padding: 8px 12px; font-size: .95em; color: var(--primary-text-color); }
+          .head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 2px 12px; padding: 6px 12px 2px; font-size: .95em; color: var(--primary-text-color); }
+          .symbols { position: absolute; display: flex; justify-content: space-between; align-items: flex-start; }
+          .symbols .icon { cursor: pointer; user-select: none; line-height: 0; }
           .head .stand { cursor: pointer; }
           .head .info { margin-left: auto; font-weight: 500; }
           .frame { position: relative; width: 100%; aspect-ratio: 4 / 3; background-size: cover; background-position: center; color: #fff; }

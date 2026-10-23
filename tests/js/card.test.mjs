@@ -3,7 +3,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   resolveEntities, formatDuration, formatNumber, chargeInfo, hasNoData, plugColor, socColor, batteryIcon,
-  stepLimit, normalizeConfig, isValid, formatUpdated, LAYOUT, stackStyle, headerParts,
+  stepLimit, normalizeConfig, isValid, formatUpdated, LAYOUT, stackStyle, headerParts, symbolsStyle,
 } from "../../custom_components/psacc_fahrtenbuch/frontend/psacc-fahrzeug-card.js";
 
 const ent = (entity_id, translation_key, device_id = "dev1", platform = "psacc_fahrtenbuch") =>
@@ -132,4 +132,11 @@ test("Kopfzeile: Stand links, Ladeinfo rechts nur beim Laden; nicht mehr als Ove
   assert.equal(headerParts(cfg, ids, { ...S, charge_status: st("disconnected") }, "de", "UTC").info, "");
   assert.equal(headerParts({ ...cfg, show_updated: false }, ids, S, "de", "UTC").stand, "");
   assert.equal(headerParts(cfg, ids, { ...S, updated: st("unavailable") }, "de", "UTC").stand, "Stand: –");
+});
+
+test("A/C und Stecker liegen in einer gemeinsamen Zeile (gleiche Oberkante), nah am oberen Bildrand", () => {
+  assert.equal(LAYOUT.climate, undefined);
+  assert.equal(LAYOUT.plug, undefined);
+  assert.equal(symbolsStyle(), `top:${LAYOUT.symbols.top}%;left:${LAYOUT.symbols.side}%;right:${LAYOUT.symbols.side}%;`);
+  assert.ok(LAYOUT.symbols.top <= 3);
 });
