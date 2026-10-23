@@ -3,7 +3,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   resolveEntities, formatDuration, formatNumber, chargeInfo, hasNoData, plugColor, socColor, batteryIcon,
-  stepLimit, normalizeConfig, isValid, formatUpdated, LAYOUT, stackStyle,
+  stepLimit, normalizeConfig, isValid, formatUpdated, LAYOUT, stackStyle, headerParts,
 } from "../../custom_components/psacc_fahrtenbuch/frontend/psacc-fahrzeug-card.js";
 
 const ent = (entity_id, translation_key, device_id = "dev1", platform = "psacc_fahrtenbuch") =>
@@ -118,4 +118,18 @@ test("Reichweite, Ladestand und Ladelimit sitzen in einem gemeinsamen rechtsbuen
   assert.equal(LAYOUT.limit, undefined);
   assert.equal(stackStyle(), `right:${LAYOUT.stack.right}%;bottom:${LAYOUT.stack.bottom}%;`);
   assert.ok(LAYOUT.stack.right >= 0 && LAYOUT.stack.bottom >= 0);
+});
+
+test("Kopfzeile: Stand links, Ladeinfo rechts nur beim Laden; nicht mehr als Overlay im Bild", () => {
+  assert.equal(LAYOUT.updated, undefined);
+  assert.equal(LAYOUT.charge, undefined);
+  const cfg = { show_updated: true, show_charge_info: true };
+  const ids = { updated: "sensor.x_letztes_update" };
+  const S = { updated: st("2026-01-01T12:00:00+00:00"), charge_status: st("in_progress"), charge_time: st("630"), charge_rate: st("6") };
+  const h = headerParts(cfg, ids, S, "de", "UTC");
+  assert.match(h.stand, /^Stand: /);
+  assert.equal(h.info, "Fertig in 10 h 30 min · +6 km/h");
+  assert.equal(headerParts(cfg, ids, { ...S, charge_status: st("disconnected") }, "de", "UTC").info, "");
+  assert.equal(headerParts({ ...cfg, show_updated: false }, ids, S, "de", "UTC").stand, "");
+  assert.equal(headerParts(cfg, ids, { ...S, updated: st("unavailable") }, "de", "UTC").stand, "Stand: –");
 });
