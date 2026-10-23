@@ -59,12 +59,16 @@ if HAVE_HA:
             self.down = False
             self.nominatim = {"address": {"road": "Teststrasse", "town": "Beispielstadt"}}
             self.nominatim_fail = False
+            self.nominatim_exc = False
+            self.geo_calls = []
             m = aioclient_mock
             m.get(f"{BASE}/get_vehicles", side_effect=self._h(lambda: self.vehicles))
             m.get(f"{BASE}/get_vehicleinfo/{VIN}", side_effect=self._h(lambda: self.info))
             m.get(f"{BASE}/battery/soh/{VIN}", side_effect=self._h(lambda: self.soh))
             m.get(f"{BASE}/charge_control", side_effect=self._h(lambda: self.charge_control))
-            for cmd in ("wakeup", "horn", "lights", "lock_door", "preconditioning"):
+            self.wakeup_fail = False
+            m.get(f"{BASE}/wakeup/{VIN}", side_effect=self._wakeup)
+            for cmd in ("horn", "lights", "lock_door", "preconditioning"):
                 m.get(f"{BASE}/{cmd}/{VIN}", side_effect=self._h(lambda: {"ok": True}))
             m.get(re.compile(rf"{re.escape(BASE)}/(horn|lights|lock_door|preconditioning)/{VIN}/\d+"),
                   side_effect=self._h(lambda: {"ok": True}))
@@ -77,7 +81,15 @@ if HAVE_HA:
                 return AiohttpClientMockResponse(method, url, json=copy.deepcopy(get()))
             return handler
 
+        async def _wakeup(self, method, url, data):
+            if self.wakeup_fail:
+                return AiohttpClientMockResponse(method, url, status=500)
+            return AiohttpClientMockResponse(method, url, json={"ok": True})
+
         async def _geo(self, method, url, data):
+            self.geo_calls.append((url, data))
+            if self.nominatim_exc:
+                return AiohttpClientMockResponse(method, url, exc=ClientConnectionError("geo down"))
             if self.nominatim_fail:
                 return AiohttpClientMockResponse(method, url, status=500)
             return AiohttpClientMockResponse(method, url, json=self.nominatim)
