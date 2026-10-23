@@ -134,9 +134,9 @@ test("Kopfzeile: Stand links, Ladeinfo rechts nur beim Laden; nicht mehr als Ove
   assert.equal(headerParts(cfg, ids, { ...S, updated: st("unavailable") }, "de", "UTC").stand, "Stand: –");
 });
 
-test("A/C und Stecker liegen in einer gemeinsamen Zeile (gleiche Oberkante), nah am oberen Bildrand", () => {
+test("Vierergruppe: Kopfzeile und Symbolzeile in einem Block oben im Bild, Abstand wie 1.0.4", () => {
   assert.equal(LAYOUT.climate, undefined);
   assert.equal(LAYOUT.plug, undefined);
-  assert.equal(symbolsStyle(), `top:${LAYOUT.symbols.top}%;left:${LAYOUT.symbols.side}%;right:${LAYOUT.symbols.side}%;`);
-  assert.ok(LAYOUT.symbols.top <= 3);
+  assert.equal(symbolsStyle(), `margin-top:${LAYOUT.symbols.gap}%;padding:0 ${LAYOUT.symbols.side}%;`);
+  assert.ok(LAYOUT.symbols.gap > 0 && LAYOUT.symbols.gap <= 3);
 });
