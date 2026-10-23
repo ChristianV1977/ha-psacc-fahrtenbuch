@@ -86,7 +86,7 @@ Fahrten enthalten Orte und frei wählbare Hinweise (oft Personen). Die Fahrtenli
 
 ## Entwicklung
 
-`python3 -m venv .venv && .venv/bin/pip install -r requirements_test.txt && .venv/bin/python -m pytest tests` (HA-Tests gegen echtes Home Assistant, Python 3.13). Karten-Logik: `node --test tests/js` (nur Entwicklung). Selbsttest gegen eine Kopie einer echten Datenbank: `python3 tools/selftest_real_db.py <kopie.db>`. Übersetzungen werden mit `tools/gen_translations.py` erzeugt. Lizenz: MIT.
+`python3 -m venv .venv && .venv/bin/pip install -r requirements_test.txt && .venv/bin/python -m pytest tests` (HA-Tests gegen echtes Home Assistant, Python 3.13). Karten-Logik: `node --test tests/js/*.test.mjs` (nur Entwicklung). Selbsttest gegen eine Kopie einer echten Datenbank: `python3 tools/selftest_real_db.py <kopie.db>`. Übersetzungen werden mit `tools/gen_translations.py` erzeugt. Lizenz: MIT.
 
 ## Hinweis zu HACS und GitLab
 
