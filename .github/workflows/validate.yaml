@@ -41,3 +41,7 @@ jobs:
           cache-dependency-path: requirements_test.txt
       - run: pip install -r requirements_test.txt
       - run: pytest tests --timeout=60
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: node --test tests/js
