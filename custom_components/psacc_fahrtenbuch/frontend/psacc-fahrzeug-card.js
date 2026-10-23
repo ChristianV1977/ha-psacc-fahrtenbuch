@@ -22,8 +22,6 @@ export const ELEMENTS = {
 
 /** Positionen (Mitte des Elements) in % der Bildflaeche. */
 export const LAYOUT = {
-  updated: { x: 50, y: 6 },
-  charge: { x: 50, y: 13 },
   climate: { x: 10, y: 11 },
   plug: { x: 90, y: 11 },
   nodata: { x: 50, y: 50 },
@@ -99,6 +97,14 @@ export function chargeInfo(status, remainingMinutes, rate, language) {
   if (dur) text = `Fertig in ${dur}`;
   if (isValid(rate) && Number(rate.state) > 0) text += ` · +${formatNumber(rate.state, language, 0)} km/h`;
   return text;
+}
+
+/** Texte der Kopfzeile ueber dem Bild: links Stand, rechts Ladeinfo (leer, wenn aus/nicht ladend). */
+export function headerParts(config, ids, S, language, timeZone) {
+  const stand = config.show_updated && ids.updated
+    ? `Stand: ${isValid(S.updated) ? formatUpdated(S.updated.state, language, timeZone) : "–"}` : "";
+  const info = config.show_charge_info ? chargeInfo(S.charge_status, S.charge_time, S.charge_rate, language) : "";
+  return { stand, info };
 }
 
 /** Keine Fahrzeugdaten: SoC UND letztes Update fehlen bzw. sind nicht verfuegbar. */
@@ -270,7 +276,7 @@ if (typeof window !== "undefined" && typeof customElements !== "undefined") {
         const dim = nodata ? "dim" : "";
         const grey = "var(--disabled-text-color, #9e9e9e)";
         const lang = this._lang();
-        const info = c.show_charge_info ? chargeInfo(S.charge_status, S.charge_time, S.charge_rate, lang) : "";
+        const head = headerParts(c, ids, S, lang, this.hass.config?.time_zone);
         const image = c.image || DEFAULT_IMAGE;
         const climate = this._bind("climate", () => this._toggleClimate());
         const socOk = isValid(S.soc);
@@ -278,10 +284,10 @@ if (typeof window !== "undefined" && typeof customElements !== "undefined") {
         const limitShown = this._pending ?? (limitOk ? Number(S.limit.state) : undefined);
 
         return html`<ha-card>
+          ${head.stand || head.info ? html`<div class="head ${dim}">
+            ${head.stand ? html`<span class="stand" @click=${() => this._moreInfo("updated")}>${head.stand}</span>` : html`<span></span>`}
+            ${head.info ? html`<span class="info">${head.info}</span>` : ""}</div>` : ""}
           <div class="frame" style="background-image:url('${image}')">
-            ${c.show_updated && ids.updated ? html`<div class="el text ${dim}" style=${this._pos("updated")} @click=${() => this._moreInfo("updated")}>
-              Stand: ${isValid(S.updated) ? formatUpdated(S.updated.state, lang, this.hass.config?.time_zone) : "–"}</div>` : ""}
-            ${info ? html`<div class="el text small ${dim}" style=${this._pos("charge")}>${info}</div>` : ""}
             ${nodata ? html`<div class="el text big" style=${this._pos("nodata")}>Keine Fahrzeugdaten</div>` : ""}
             ${c.show_climate && ids.climate ? html`<div class="el icon ${dim}" style=${this._pos("climate", nodata ? "pointer-events:none;" : "")}
                 @pointerdown=${climate.onpointerdown} @pointerup=${climate.onpointerup} @pointerleave=${climate.onpointerleave}>
@@ -307,6 +313,9 @@ if (typeof window !== "undefined" && typeof customElements !== "undefined") {
       static get styles() {
         return css`
           ha-card { overflow: hidden; }
+          .head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 2px 12px; padding: 8px 12px; font-size: .95em; color: var(--primary-text-color); }
+          .head .stand { cursor: pointer; }
+          .head .info { margin-left: auto; font-weight: 500; }
           .frame { position: relative; width: 100%; aspect-ratio: 4 / 3; background-size: cover; background-position: center; color: #fff; }
           .el { position: absolute; transform: translate(-50%, -50%); white-space: nowrap; cursor: pointer; user-select: none; }
           .text { color: #fff; font-size: 1.1em; font-weight: 500; text-shadow: 0 0 4px rgba(0,0,0,.9), 1px 1px 2px rgba(0,0,0,.9); }
