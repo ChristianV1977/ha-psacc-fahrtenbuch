@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" role="img" aria-label="Fahrzeug">
+  <!-- Neutrale, selbst erzeugte Silhouette (kein Hersteller, kein Logo) -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5f7a93"/>
+      <stop offset="1" stop-color="#2c3e50"/>
+    </linearGradient>
+    <linearGradient id="body" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#d9e0e6"/>
+      <stop offset="1" stop-color="#9aa7b3"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="600" fill="url(#bg)"/>
+  <ellipse cx="400" cy="440" rx="270" ry="22" fill="#000" opacity=".28"/>
+  <path d="M120 400 L130 340 Q140 310 175 300 L270 280 Q300 230 350 215 L470 215 Q520 220 550 265 L620 285 Q665 295 675 340 L682 400 Q682 420 662 420 L138 420 Q118 420 120 400 Z" fill="url(#body)" stroke="#6b7782" stroke-width="3"/>
+  <path d="M295 282 Q318 240 355 230 L400 230 L400 282 Z" fill="#33485c" opacity=".85"/>
+  <path d="M412 230 L465 230 Q500 236 522 282 L412 282 Z" fill="#33485c" opacity=".85"/>
+  <rect x="150" y="372" width="60" height="12" rx="6" fill="#f4f1c8"/>
+  <rect x="596" y="372" width="60" height="12" rx="6" fill="#c9524b"/>
+  <g fill="#1d252c"><circle cx="230" cy="420" r="52"/><circle cx="580" cy="420" r="52"/></g>
+  <g fill="#8c98a3"><circle cx="230" cy="420" r="26"/><circle cx="580" cy="420" r="26"/></g>
+</svg>

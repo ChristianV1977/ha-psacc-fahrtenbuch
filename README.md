@@ -28,13 +28,65 @@ Die Fahrten liegen in `<config>/psacc_fahrtenbuch/fahrten.db`. Existiert dort be
 
 [`examples/dashboard-fahrtenbuch.yaml`](examples/dashboard-fahrtenbuch.yaml) (Raw-Konfigurationseditor, unter `views:`). Für ein anderes Präfix: `python3 tools/gen_dashboard.py PRAEFIX`.
 
+## Lovelace-Karte `custom:psacc-fahrzeug-card`
+
+Die Integration liefert die Karte mit und lädt sie selbst (kein Lovelace-Resource-Eintrag nötig; nach dem ersten Start einmal den Browser-Cache leeren). Die Karte erscheint im Karten-Dialog als "PSA Fahrzeug". Sie zeigt Stand der Cloud-Daten, Ladeinfo, Klima (Tippen = umschalten, lange drücken = Details), Stecker (rot getrennt, orange angesteckt, grün lädt), Reichweite, Ladestand, Fahrleistung und das Ladelimit (− / +, wird nach `limit_delay` gesammelt gesetzt). Nicht verfügbare Werte erscheinen als "–"; fehlen Ladestand und Update, steht "Keine Fahrzeugdaten" in der Karte.
+
+```yaml
+type: custom:psacc-fahrzeug-card
+config_entry_id: <ID des Eintrags>   # oder device_id; im Editor per Dropdown
+# image: /local/mein-auto.jpg        # optional, Standard: neutrale mitgelieferte Silhouette
+# show_climate / show_plug / show_range / show_soc / show_odometer / show_charge_info / show_updated / show_limit: true
+# limit_step: 5      # 1..20
+# limit_delay: 3000  # ms
+# entities:          # optionaler Override je Element
+#   soc: sensor.mokka_batterie_soc
+#   range, odometer, charge_status, charge_time, charge_rate, updated, plug, limit, climate
+```
+
+**Eigenes Foto:** Bild unter `<config>/www/` ablegen (z. B. `www/mokka.jpg`) und `image: /local/mokka.jpg` setzen (Format 4:3 empfohlen).
+
+Beispiel für eine komplette Ansicht (Gauges und Verlauf bleiben Standardkarten):
+
+```yaml
+type: sections
+sections:
+  - type: grid
+    cards:
+      - type: custom:psacc-fahrzeug-card
+        device_id: <Geräte-ID>
+      - type: gauge
+        name: Ladung
+        entity: sensor.mokka_batterie_soc
+        min: 0
+        max: 100
+        segments:
+          - {from: 0, color: "#db4437"}
+          - {from: 20, color: "#ffa600"}
+          - {from: 40, color: "#43a047"}
+      - type: gauge
+        name: Spannung
+        entity: sensor.mokka_batteriespannung
+        min: 200
+        max: 300
+        segments:
+          - {from: 200, color: "#db4437"}
+          - {from: 220, color: "#ffa600"}
+          - {from: 235, color: "#43a047"}
+      - type: history-graph
+        title: Laderate
+        hours_to_show: 24
+        entities:
+          - sensor.mokka_laderate
+```
+
 ## Datenschutz
 
 Fahrten enthalten Orte und frei wählbare Hinweise (oft Personen). Die Fahrtenliste (`trips`) ist per `_unrecorded_attributes` vom Recorder ausgenommen, Diagnosedaten schwärzen VIN, URL, Koordinaten und Fahrten. **Empfohlen:** `text.*_fahrtenbuch_hinweis` und `device_tracker.*` aus Recorder, Logbuch und InfluxDB ausschließen. Nominatim erhält nur Koordinaten außerhalb von Zonen. Das Repo enthält keine echten Daten (Tests nutzen fiktive Werte und anonymisierte Antworten).
 
 ## Entwicklung
 
-`python3 -m venv .venv && .venv/bin/pip install pytest homeassistant && .venv/bin/python -m pytest tests`. Selbsttest gegen eine Kopie einer echten Datenbank: `python3 tools/selftest_real_db.py <kopie.db>`. Übersetzungen werden mit `tools/gen_translations.py` erzeugt. Lizenz: MIT.
+`python3 -m venv .venv && .venv/bin/pip install -r requirements_test.txt && .venv/bin/python -m pytest tests` (HA-Tests gegen echtes Home Assistant, Python 3.13). Karten-Logik: `node --test tests/js/*.test.mjs` (nur Entwicklung). Selbsttest gegen eine Kopie einer echten Datenbank: `python3 tools/selftest_real_db.py <kopie.db>`. Übersetzungen werden mit `tools/gen_translations.py` erzeugt. Lizenz: MIT.
 
 ## Hinweis zu HACS und GitLab
 
