@@ -23,7 +23,7 @@ export const ELEMENTS = {
 /** Positionen (Mitte des Elements) in % der Bildflaeche. */
 export const LAYOUT = {
   // A/C (links) und Stecker (rechts) in einer Zeile: gleiche Oberkante, nah an der Kopfzeile (% der Bildgroesse)
-  symbols: { top: 2, side: 6 },
+  symbols: { gap: 1.5, side: 6 },
   nodata: { x: 50, y: 50 },
   // Reichweite, Ladestand und Ladelimit: ein gemeinsamer, rechtsbuendiger Block (Abstaende in % der Kartengroesse)
   stack: { right: 8, bottom: 4 },
@@ -32,9 +32,9 @@ export const LAYOUT = {
 
 const BAD = new Set(["unavailable", "unknown", undefined, null, ""]);
 
-/** CSS-Position der Symbolzeile oben im Bild (A/C links, Stecker rechts, gleiche Oberkante). */
+/** Abstand/Seitenrand der Symbolzeile unter der Kopfzeile (Vierergruppe liegt oben im Bild, % der Kartenbreite). */
 export function symbolsStyle(layout = LAYOUT) {
-  return `top:${layout.symbols.top}%;left:${layout.symbols.side}%;right:${layout.symbols.side}%;`;
+  return `margin-top:${layout.symbols.gap}%;padding:0 ${layout.symbols.side}%;`;
 }
 
 /** CSS-Position des rechtsbuendigen Blocks unten rechts. */
@@ -289,11 +289,12 @@ if (typeof window !== "undefined" && typeof customElements !== "undefined") {
         const limitShown = this._pending ?? (limitOk ? Number(S.limit.state) : undefined);
 
         return html`<ha-card>
-          ${head.stand || head.info ? html`<div class="head ${dim}">
-            ${head.stand ? html`<span class="stand" @click=${() => this._moreInfo("updated")}>${head.stand}</span>` : html`<span></span>`}
-            ${head.info ? html`<span class="info">${head.info}</span>` : ""}</div>` : ""}
           <div class="frame" style="background-image:url('${image}')">
             ${nodata ? html`<div class="el text big" style=${this._pos("nodata")}>Keine Fahrzeugdaten</div>` : ""}
+            <div class="top">
+            ${head.stand || head.info ? html`<div class="head ${dim}">
+              ${head.stand ? html`<span class="stand" @click=${() => this._moreInfo("updated")}>${head.stand}</span>` : html`<span></span>`}
+              ${head.info ? html`<span class="info">${head.info}</span>` : ""}</div>` : ""}
             ${(c.show_climate && ids.climate) || (c.show_plug && ids.plug) ? html`<div class="symbols" style=${symbolsStyle()}>
               ${c.show_climate && ids.climate ? html`<div class="icon ${dim}" style=${nodata ? "pointer-events:none;" : ""}
                   @pointerdown=${climate.onpointerdown} @pointerup=${climate.onpointerup} @pointerleave=${climate.onpointerleave}>
@@ -301,6 +302,7 @@ if (typeof window !== "undefined" && typeof customElements !== "undefined") {
               ${c.show_plug && ids.plug ? html`<div class="icon ${dim}" @click=${() => this._moreInfo("plug")}>
                 <ha-icon icon="mdi:ev-plug-type2" style="color:${plugColor(S.plug, S.charge_status)}"></ha-icon></div>` : ""}
             </div>` : ""}
+            </div>
             ${(c.show_range && ids.range) || (c.show_soc && ids.soc) || (c.show_limit && ids.limit) ? html`<div class="stack" style=${stackStyle()}>
               ${c.show_range && ids.range ? html`<div class="row text ${dim}" @click=${() => this._moreInfo("range")}>
                 ${this._val("range", 0)}</div>` : ""}
@@ -320,8 +322,9 @@ if (typeof window !== "undefined" && typeof customElements !== "undefined") {
       static get styles() {
         return css`
           ha-card { overflow: hidden; }
-          .head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 2px 12px; padding: 6px 12px 2px; font-size: .95em; color: var(--primary-text-color); }
-          .symbols { position: absolute; display: flex; justify-content: space-between; align-items: flex-start; }
+          .top { position: absolute; top: 0; left: 0; right: 0; background: linear-gradient(rgba(0,0,0,.4), rgba(0,0,0,0)); }
+          .head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 2px 12px; padding: 6px 12px 2px; font-size: .95em; color: #fff; text-shadow: 0 0 4px rgba(0,0,0,.9), 1px 1px 2px rgba(0,0,0,.9); }
+          .symbols { display: flex; justify-content: space-between; align-items: flex-start; }
           .symbols .icon { cursor: pointer; user-select: none; line-height: 0; }
           .head .stand { cursor: pointer; }
           .head .info { margin-left: auto; font-weight: 500; }
