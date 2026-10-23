@@ -26,7 +26,7 @@ T = """\
           content: |
             | Fahrten | km gesamt | kWh gesamt | Ø kWh/Fahrt | kWh/100km |
             |--:|--:|--:|--:|--:|
-            | {{ states('sensor.P_fahrtenbuch_gesamt_fahrten') }} | {{ states('sensor.P_fahrtenbuch_gesamt_km') }} | {{ states('sensor.P_fahrtenbuch_gesamt_kwh') }} | {{ states('sensor.P_fahrtenbuch_gesamt_kwh_pro_fahrt') }} | {{ states('sensor.P_fahrtenbuch_gesamt_kwh_pro_100km') }} |
+            | {{ states('sensor.P_fahrtenbuch_gesamt_fahrten') }} | {{ states('sensor.P_fahrtenbuch_gesamt_km') }} | {{ states('sensor.P_fahrtenbuch_gesamt_kwh') }} | {{ states('sensor.P_fahrtenbuch_gesamt_kwh_pro_fahrt') }} | {{ states('sensor.P_fahrtenbuch_gesamt_kwh_pro_100_km') }} |
     - type: grid
       cards:
         - type: markdown
@@ -37,7 +37,7 @@ T = """\
 
             | Fahrten | km gesamt | kWh gesamt | Ø kWh/Fahrt | kWh/100km |
             |--:|--:|--:|--:|--:|
-            | {{ states('sensor.P_fahrtenbuch_monat_fahrten') }} | {{ states('sensor.P_fahrtenbuch_monat_km') }} | {{ states('sensor.P_fahrtenbuch_monat_kwh') }} | {{ states('sensor.P_fahrtenbuch_monat_kwh_pro_fahrt') }} | {{ states('sensor.P_fahrtenbuch_monat_kwh_pro_100km') }} |
+            | {{ states('sensor.P_fahrtenbuch_monat_fahrten') }} | {{ states('sensor.P_fahrtenbuch_monat_km') }} | {{ states('sensor.P_fahrtenbuch_monat_kwh') }} | {{ states('sensor.P_fahrtenbuch_monat_kwh_pro_fahrt') }} | {{ states('sensor.P_fahrtenbuch_monat_kwh_pro_100_km') }} |
     - type: grid
       cards:
         - type: heading
