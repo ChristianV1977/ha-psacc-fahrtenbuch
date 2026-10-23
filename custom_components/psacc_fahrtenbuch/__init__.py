@@ -5,12 +5,17 @@ from dataclasses import dataclass
 
 import voluptuous as vol
 
+from pathlib import Path
+
+from homeassistant.components import frontend
+from homeassistant.components.http import StaticPathConfig
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, ServiceCall, SupportsResponse
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.typing import ConfigType
+from homeassistant.loader import async_get_integration
 
 from .api import PsaccClient
 from .const import CONF_SCAN_INTERVAL, CONF_URL, CONF_VIN, DEFAULT_SCAN_INTERVAL, DOMAIN, PLATFORMS
@@ -19,6 +24,21 @@ from .db import TRIP_FIELDS
 from .manager import Manager
 
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
+
+FRONTEND_URL = f"/{DOMAIN}/frontend"
+CARD_FILE = "psacc-fahrzeug-card.js"
+_FRONTEND_REGISTERED = f"{DOMAIN}_frontend_registered"
+
+
+async def _async_register_frontend(hass: HomeAssistant) -> None:
+    """Mitgelieferte Lovelace-Karte ausliefern und als Modul laden (nur einmal pro HA-Lauf)."""
+    if hass.data.get(_FRONTEND_REGISTERED):
+        return
+    hass.data[_FRONTEND_REGISTERED] = True
+    await hass.http.async_register_static_paths(
+        [StaticPathConfig(FRONTEND_URL, str(Path(__file__).parent / "frontend"), cache_headers=False)])
+    version = (await async_get_integration(hass, DOMAIN)).version
+    frontend.add_extra_js_url(hass, f"{FRONTEND_URL}/{CARD_FILE}?v={version}")
 
 
 @dataclass
@@ -91,6 +111,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     reg(DOMAIN, "auswahl_setzen", auswahl_setzen, vol.Schema({
         vol.Optional("jahr"): vol.Coerce(int), vol.Optional("monat"): vol.All(vol.Coerce(int), vol.Range(1, 12))}))
     reg(DOMAIN, "wakeup", wakeup, vol.Schema({}))
+    await _async_register_frontend(hass)
     return True
 
 
