@@ -29,6 +29,9 @@ try:
 except ImportError:
     HAVE_HA = False
 
+if not HAVE_HA:
+    collect_ignore_glob = ["test_ha_*.py"]  # HA-Tests brauchen requirements_test.txt
+
 if HAVE_HA:
     import copy, json
 
