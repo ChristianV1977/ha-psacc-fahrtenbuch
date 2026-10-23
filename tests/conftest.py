@@ -41,6 +41,7 @@ if HAVE_HA:
 
     FIX = ROOT / "tests" / "fixtures"
     BASE = "http://psacc.test:5000"
+    NOW = "2026-01-01 12:10:00+00:00"  # 10 min nach "letztes_update" der Fixture -> Daten frisch
     VIN = json.loads((FIX / "vehicles.json").read_text())[0]["vin"]
 
     def load_fixture_json(name):
@@ -98,10 +99,12 @@ if HAVE_HA:
         yield
 
     @pytest.fixture(autouse=True)
-    def _isolate_config_dir(hass, tmp_path):
-        """fahrten.db nie im gemeinsamen Test-Konfigverzeichnis anlegen; Entity-IDs deutsch."""
+    async def _isolate_config_dir(hass, tmp_path, freezer):
+        """fahrten.db nie im gemeinsamen Test-Konfigverzeichnis anlegen; Entity-IDs deutsch; feste Zeit."""
         hass.config.config_dir = str(tmp_path)
         hass.config.language = "de"
+        await hass.config.async_set_time_zone("Europe/Berlin")
+        freezer.move_to(NOW)
 
     @pytest.fixture
     def psacc(aioclient_mock):
