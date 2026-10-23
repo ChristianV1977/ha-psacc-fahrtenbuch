@@ -3,7 +3,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   resolveEntities, formatDuration, formatNumber, chargeInfo, hasNoData, plugColor, socColor, batteryIcon,
-  stepLimit, normalizeConfig, isValid, formatUpdated,
+  stepLimit, normalizeConfig, isValid, formatUpdated, LAYOUT, stackStyle,
 } from "../../custom_components/psacc_fahrtenbuch/frontend/psacc-fahrzeug-card.js";
 
 const ent = (entity_id, translation_key, device_id = "dev1", platform = "psacc_fahrtenbuch") =>
@@ -106,4 +106,12 @@ test("Konfiguration", () => {
   const c = normalizeConfig({ config_entry_id: "x", limit_step: 99, show_soc: false });
   assert.equal(c.limit_step, 20); assert.equal(c.show_soc, false);
   assert.equal(c.show_limit, true); assert.equal(c.limit_delay, 3000);
+});
+
+test("Reichweite, Ladestand und Ladelimit sitzen in einem gemeinsamen rechtsbuendigen Block", () => {
+  assert.equal(LAYOUT.range, undefined);
+  assert.equal(LAYOUT.soc, undefined);
+  assert.equal(LAYOUT.limit, undefined);
+  assert.equal(stackStyle(), `right:${LAYOUT.stack.right}%;bottom:${LAYOUT.stack.bottom}%;`);
+  assert.ok(LAYOUT.stack.right >= 0 && LAYOUT.stack.bottom >= 0);
 });

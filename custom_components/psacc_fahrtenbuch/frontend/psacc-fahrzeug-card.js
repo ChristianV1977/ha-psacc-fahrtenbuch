@@ -27,13 +27,17 @@ export const LAYOUT = {
   climate: { x: 10, y: 11 },
   plug: { x: 90, y: 11 },
   nodata: { x: 50, y: 50 },
-  range: { x: 80, y: 66 },
-  soc: { x: 80, y: 77 },
-  limit: { x: 80, y: 91 },
+  // Reichweite, Ladestand und Ladelimit: ein gemeinsamer, rechtsbuendiger Block (Abstaende in % der Kartengroesse)
+  stack: { right: 8, bottom: 4 },
   odometer: { x: 27, y: 91 },
 };
 
 const BAD = new Set(["unavailable", "unknown", undefined, null, ""]);
+
+/** CSS-Position des rechtsbuendigen Blocks unten rechts. */
+export function stackStyle(layout = LAYOUT) {
+  return `right:${layout.stack.right}%;bottom:${layout.stack.bottom}%;`;
+}
 
 export function isValid(stateObj) {
   return !!stateObj && !BAD.has(stateObj.state);
@@ -283,17 +287,19 @@ if (typeof window !== "undefined" && typeof customElements !== "undefined") {
               <ha-icon icon="mdi:air-conditioner" style="color:${isValid(S.climate) ? (S.climate.state === "on" ? "var(--primary-color, #03a9f4)" : "#fff") : grey}"></ha-icon></div>` : ""}
             ${c.show_plug && ids.plug ? html`<div class="el icon ${dim}" style=${this._pos("plug")} @click=${() => this._moreInfo("plug")}>
               <ha-icon icon="mdi:ev-plug-type2" style="color:${plugColor(S.plug, S.charge_status)}"></ha-icon></div>` : ""}
-            ${c.show_range && ids.range ? html`<div class="el text ${dim}" style=${this._pos("range")} @click=${() => this._moreInfo("range")}>
-              ${this._val("range", 0)}</div>` : ""}
-            ${c.show_soc && ids.soc ? html`<div class="el text ${dim}" style=${this._pos("soc")} @click=${() => this._moreInfo("soc")}>
-              <ha-icon class="inline" icon=${batteryIcon(socOk ? S.soc.state : NaN)} style="color:${socOk ? socColor(S.soc.state) : grey}"></ha-icon>
-              ${this._val("soc", 0)}</div>` : ""}
+            ${(c.show_range && ids.range) || (c.show_soc && ids.soc) || (c.show_limit && ids.limit) ? html`<div class="stack" style=${stackStyle()}>
+              ${c.show_range && ids.range ? html`<div class="row text ${dim}" @click=${() => this._moreInfo("range")}>
+                ${this._val("range", 0)}</div>` : ""}
+              ${c.show_soc && ids.soc ? html`<div class="row text ${dim}" @click=${() => this._moreInfo("soc")}>
+                <ha-icon class="inline" icon=${batteryIcon(socOk ? S.soc.state : NaN)} style="color:${socOk ? socColor(S.soc.state) : grey}"></ha-icon>
+                ${this._val("soc", 0)}</div>` : ""}
+              ${c.show_limit && ids.limit ? html`<div class="row text limit ${dim}" style=${nodata ? "pointer-events:none;" : ""}>
+                <span class="btn" @click=${() => this._changeLimit(-1)}>−</span>
+                <span class="val" @click=${() => this._moreInfo("limit")}>${limitShown === undefined ? "–" : `${formatNumber(limitShown, lang, 0)}%`}</span>
+                <span class="btn" @click=${() => this._changeLimit(1)}>+</span></div>` : ""}
+            </div>` : ""}
             ${c.show_odometer && ids.odometer ? html`<div class="el text ${dim}" style=${this._pos("odometer")} @click=${() => this._moreInfo("odometer")}>
               Fahrleistung: ${this._val("odometer", 1)}</div>` : ""}
-            ${c.show_limit && ids.limit ? html`<div class="el text limit ${dim}" style=${this._pos("limit", nodata ? "pointer-events:none;" : "")}>
-              <span class="btn" @click=${() => this._changeLimit(-1)}>−</span>
-              <span class="val" @click=${() => this._moreInfo("limit")}>${limitShown === undefined ? "–" : `${formatNumber(limitShown, lang, 0)}%`}</span>
-              <span class="btn" @click=${() => this._changeLimit(1)}>+</span></div>` : ""}
           </div></ha-card>`;
       }
 
@@ -308,7 +314,10 @@ if (typeof window !== "undefined" && typeof customElements !== "undefined") {
           .icon ha-icon { --mdc-icon-size: 32px; filter: drop-shadow(1px 1px 2px rgba(0,0,0,.9)); }
           .inline { --mdc-icon-size: 24px; vertical-align: middle; filter: drop-shadow(1px 1px 2px rgba(0,0,0,.9)); }
           .dim { opacity: .45; }
-          .limit { display: flex; gap: 10px; align-items: center; }
+          .stack { position: absolute; display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
+          .row { cursor: pointer; user-select: none; white-space: nowrap; display: flex; align-items: center; justify-content: flex-end; gap: 6px; }
+          .limit { gap: 10px; }
+          .limit .btn:last-child { padding-right: 0; }
           .limit .btn { padding: 0 8px; font-size: 1.3em; }
         `;
       }
