@@ -1,0 +1,267 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "PSA Car Controller",
+        "description": "Address of the add-on's local REST API.",
+        "data": {
+          "url": "URL"
+        }
+      },
+      "vehicle": {
+        "title": "Vehicle",
+        "data": {
+          "vin": "Vehicle"
+        }
+      },
+      "settings": {
+        "title": "Settings",
+        "data": {
+          "titel": "Name (device, entity ID prefix)",
+          "kapazitaet_kwh": "Assumed usable battery capacity",
+          "scan_interval": "Polling interval",
+          "wakeup_stuendlich": "Hourly wakeup",
+          "wakeup_bei_ladeende_entity": "Wakeup at charge end (binary sensor 'charging', optional)",
+          "geocoding": "Resolve places via Nominatim",
+          "user_agent": "User-Agent (Nominatim)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Cannot reach psacc.",
+      "no_vehicles": "psacc reports no vehicle."
+    },
+    "abort": {
+      "already_configured": "Vehicle already configured.",
+      "single_instance_allowed": "Only one entry allowed."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Options",
+        "data": {
+          "scan_interval": "Polling interval",
+          "wakeup_stuendlich": "Hourly wakeup",
+          "wakeup_bei_ladeende_entity": "Wakeup at charge end (binary sensor 'charging', optional)",
+          "geocoding": "Resolve places via Nominatim",
+          "user_agent": "User-Agent (Nominatim)"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "soc": {
+        "name": "Battery SOC"
+      },
+      "reichweite": {
+        "name": "Range"
+      },
+      "kilometerstand": {
+        "name": "Odometer"
+      },
+      "batteriespannung": {
+        "name": "Battery voltage"
+      },
+      "soh": {
+        "name": "Battery SOH"
+      },
+      "umgebungstemperatur": {
+        "name": "Ambient temperature"
+      },
+      "umgebungslicht": {
+        "name": "Ambient light",
+        "state": {
+          "day": "Day",
+          "night": "Night"
+        }
+      },
+      "zuendung": {
+        "name": "Ignition"
+      },
+      "geschwindigkeit": {
+        "name": "Speed"
+      },
+      "tueren": {
+        "name": "Doors"
+      },
+      "lademodus": {
+        "name": "Charging mode",
+        "state": {
+          "fast": "Fast (DC)",
+          "slow": "Slow (AC)",
+          "none": "Inactive"
+        }
+      },
+      "laderate": {
+        "name": "Charging rate"
+      },
+      "ladestatus": {
+        "name": "Charging status",
+        "state": {
+          "failure": "Failure",
+          "in_progress": "Charging",
+          "stopped": "Stopped",
+          "finished": "Finished",
+          "disconnected": "Disconnected",
+          "unknown": "Unknown"
+        }
+      },
+      "verbleibende_ladezeit": {
+        "name": "Remaining charge time"
+      },
+      "vorklimatisierung_status": {
+        "name": "Preconditioning status"
+      },
+      "vorklimatisierung_fehler": {
+        "name": "Preconditioning failure",
+        "state": {
+          "defect": "Defect",
+          "door_opened": "Door opened",
+          "low_battery": "Low battery",
+          "low_fuel": "Low fuel",
+          "too_many_programs": "Too many unused programs"
+        }
+      },
+      "letztes_update": {
+        "name": "Last update"
+      },
+      "naechste_stoppzeit": {
+        "name": "Next stop time"
+      },
+      "monat_fahrten": {
+        "name": "Logbook month trips"
+      },
+      "monat_km": {
+        "name": "Logbook month km"
+      },
+      "monat_kwh": {
+        "name": "Logbook month kWh"
+      },
+      "monat_kwh_pro_100km": {
+        "name": "Logbook month kWh per 100 km"
+      },
+      "monat_kwh_pro_fahrt": {
+        "name": "Logbook month kWh per trip"
+      },
+      "gesamt_fahrten": {
+        "name": "Logbook total trips"
+      },
+      "gesamt_km": {
+        "name": "Logbook total km"
+      },
+      "gesamt_kwh": {
+        "name": "Logbook total kWh"
+      },
+      "gesamt_kwh_pro_100km": {
+        "name": "Logbook total kWh per 100 km"
+      },
+      "gesamt_kwh_pro_fahrt": {
+        "name": "Logbook total kWh per trip"
+      }
+    },
+    "binary_sensor": {
+      "angesteckt": {
+        "name": "Plugged in"
+      },
+      "in_bewegung": {
+        "name": "Moving"
+      },
+      "daten_aktuell": {
+        "name": "Cloud data fresh"
+      },
+      "fahrt_aktiv": {
+        "name": "Trip active"
+      }
+    },
+    "device_tracker": {
+      "standort": {
+        "name": "Location"
+      }
+    },
+    "button": {
+      "wakeup": {
+        "name": "Wake up"
+      },
+      "hupe": {
+        "name": "Horn"
+      },
+      "lichter": {
+        "name": "Lights"
+      },
+      "tueren_verriegeln": {
+        "name": "Lock doors"
+      },
+      "tueren_entriegeln": {
+        "name": "Unlock doors"
+      },
+      "aktueller_monat": {
+        "name": "Logbook current month"
+      },
+      "hinweis_speichern": {
+        "name": "Logbook save note"
+      }
+    },
+    "switch": {
+      "vorklimatisierung": {
+        "name": "Preconditioning"
+      }
+    },
+    "number": {
+      "ladelimit": {
+        "name": "Charge limit"
+      },
+      "akkukapazitaet": {
+        "name": "Battery capacity"
+      },
+      "fahrtenbuch_jahr": {
+        "name": "Logbook year"
+      },
+      "fahrtenbuch_bearbeiten_id": {
+        "name": "Logbook edit ID"
+      }
+    },
+    "select": {
+      "fahrtenbuch_monat": {
+        "name": "Logbook month"
+      }
+    },
+    "text": {
+      "fahrtenbuch_hinweis": {
+        "name": "Logbook note"
+      }
+    },
+    "time": {
+      "ladezeit": {
+        "name": "Charge time"
+      }
+    }
+  },
+  "services": {
+    "hinweis_setzen": {
+      "name": "Set note",
+      "description": "Sets the note of a trip by ID."
+    },
+    "soc_anstieg_setzen": {
+      "name": "Set SoC rise flag",
+      "description": "Sets or clears the SoC-rise flag."
+    },
+    "fahrten_abfragen": {
+      "name": "Query trips",
+      "description": "Returns trips and totals of a month or overall."
+    },
+    "fahrt_hinzufuegen": {
+      "name": "Add trip",
+      "description": "Adds a trip retroactively."
+    },
+    "auswahl_setzen": {
+      "name": "Set selection",
+      "description": "Sets month/year of the logbook view."
+    },
+    "wakeup": {
+      "name": "Wake up",
+      "description": "Wakes the vehicle via psacc."
+    }
+  }
+}

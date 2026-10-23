@@ -1,0 +1,13 @@
+[
+ {
+  "vin": "VF0TESTVIN0000000",
+  "vehicle_id": "anonymized",
+  "label": "Mokka-e",
+  "brand": null,
+  "abrp_name": "opel:mokkae:20:48",
+  "battery_power": 46,
+  "fuel_capacity": 0,
+  "max_elec_consumption": 70,
+  "max_fuel_consumption": 0
+ }
+]

@@ -1,0 +1,110 @@
+{
+ "embedded": null,
+ "links": {
+  "_self": {
+   "deprecation": null,
+   "href": "https://example.invalid/anonymized",
+   "hreflang": null,
+   "name": null,
+   "profile": null,
+   "templated": null,
+   "title": null,
+   "type": null
+  },
+  "vehicle": {
+   "deprecation": null,
+   "href": "https://example.invalid/anonymized",
+   "hreflang": null,
+   "name": null,
+   "profile": null,
+   "templated": null,
+   "title": null,
+   "type": null
+  }
+ },
+ "battery": {
+  "current": null,
+  "voltage": 60.5
+ },
+ "doors_state": null,
+ "energy": [
+  {
+   "updated_at": "2026-01-01 12:00:00+00:00",
+   "created_at": "2026-01-01 12:00:00+00:00",
+   "autonomy": 118.0,
+   "battery": {
+    "capacity": null,
+    "health": {
+     "capacity": null,
+     "resistance": 90.0
+    }
+   },
+   "charging": {
+    "charging_mode": "No",
+    "charging_rate": 0,
+    "next_delayed_time": "PT13H",
+    "plugged": true,
+    "remaining_time": "PT0S",
+    "status": "Disconnected"
+   },
+   "consumption": null,
+   "level": 53.0,
+   "residual": null,
+   "type": "Electric"
+  }
+ ],
+ "environment": {
+  "created_at": null,
+  "air": {
+   "temp": 19.5
+  },
+  "luminosity": {
+   "day": true
+  }
+ },
+ "ignition": {
+  "type": "Stop"
+ },
+ "kinetic": {
+  "acceleration": null,
+  "moving": false,
+  "pace": null,
+  "speed": 0.0
+ },
+ "last_position": {
+  "type": "Feature",
+  "geometry": {
+   "coordinates": [
+    8.0,
+    50.0
+   ],
+   "type": "Point"
+  },
+  "properties": {
+   "heading": 0,
+   "signal_quality": 0,
+   "type": "Estimated",
+   "updated_at": "2026-01-01 12:00:00+00:00"
+  }
+ },
+ "preconditionning": {
+  "air_conditioning": {
+   "failure_cause": null,
+   "status": "Disabled",
+   "updated_at": "2026-10-23 12:02:20+00:00",
+   "created_at": "2026-10-23 12:02:20+00:00"
+  }
+ },
+ "privacy": {
+  "state": "None"
+ },
+ "safety": null,
+ "service": {
+  "type": "Electric",
+  "updated_at": null
+ },
+ "timed_odometer": {
+  "updated_at": "2026-10-23 12:02:20+00:00",
+  "mileage": 38061.2
+ }
+}

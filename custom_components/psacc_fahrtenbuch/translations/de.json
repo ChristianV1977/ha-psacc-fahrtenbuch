@@ -1,0 +1,267 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "PSA Car Controller",
+        "description": "Adresse der lokalen REST-API des Add-ons.",
+        "data": {
+          "url": "URL"
+        }
+      },
+      "vehicle": {
+        "title": "Fahrzeug",
+        "data": {
+          "vin": "Fahrzeug"
+        }
+      },
+      "settings": {
+        "title": "Einstellungen",
+        "data": {
+          "titel": "Name (Gerät, Präfix der Entity-IDs)",
+          "kapazitaet_kwh": "Angenommene nutzbare Akkukapazität",
+          "scan_interval": "Abfrageintervall",
+          "wakeup_stuendlich": "Wakeup stündlich",
+          "wakeup_bei_ladeende_entity": "Wakeup bei Ladeende (Binärsensor 'lädt', optional)",
+          "geocoding": "Orte per Nominatim auflösen",
+          "user_agent": "User-Agent (Nominatim)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "psacc nicht erreichbar.",
+      "no_vehicles": "psacc meldet kein Fahrzeug."
+    },
+    "abort": {
+      "already_configured": "Fahrzeug ist bereits eingerichtet.",
+      "single_instance_allowed": "Nur ein Eintrag möglich."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Optionen",
+        "data": {
+          "scan_interval": "Abfrageintervall",
+          "wakeup_stuendlich": "Wakeup stündlich",
+          "wakeup_bei_ladeende_entity": "Wakeup bei Ladeende (Binärsensor 'lädt', optional)",
+          "geocoding": "Orte per Nominatim auflösen",
+          "user_agent": "User-Agent (Nominatim)"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "soc": {
+        "name": "Batterie SOC"
+      },
+      "reichweite": {
+        "name": "Reichweite"
+      },
+      "kilometerstand": {
+        "name": "Kilometerstand"
+      },
+      "batteriespannung": {
+        "name": "Batteriespannung"
+      },
+      "soh": {
+        "name": "Batterie SOH"
+      },
+      "umgebungstemperatur": {
+        "name": "Umgebungstemperatur"
+      },
+      "umgebungslicht": {
+        "name": "Umgebungslicht",
+        "state": {
+          "day": "Tag",
+          "night": "Nacht"
+        }
+      },
+      "zuendung": {
+        "name": "Zündung"
+      },
+      "geschwindigkeit": {
+        "name": "Geschwindigkeit"
+      },
+      "tueren": {
+        "name": "Türen"
+      },
+      "lademodus": {
+        "name": "Lademodus",
+        "state": {
+          "fast": "Schnellladen (DC)",
+          "slow": "Langsamladen (AC)",
+          "none": "Inaktiv"
+        }
+      },
+      "laderate": {
+        "name": "Laderate"
+      },
+      "ladestatus": {
+        "name": "Ladestatus",
+        "state": {
+          "failure": "Fehler",
+          "in_progress": "Am Laden",
+          "stopped": "Gestoppt",
+          "finished": "Fertig",
+          "disconnected": "Getrennt",
+          "unknown": "Unbekannt"
+        }
+      },
+      "verbleibende_ladezeit": {
+        "name": "Verbleibende Ladezeit"
+      },
+      "vorklimatisierung_status": {
+        "name": "Vorklimatisierung Status"
+      },
+      "vorklimatisierung_fehler": {
+        "name": "Vorklimatisierung Fehler",
+        "state": {
+          "defect": "Beschädigt",
+          "door_opened": "Geöffnete Tür",
+          "low_battery": "Batterie schwach",
+          "low_fuel": "Treibstoff gering",
+          "too_many_programs": "Zu viele unbenutzte Programme"
+        }
+      },
+      "letztes_update": {
+        "name": "Letztes Update"
+      },
+      "naechste_stoppzeit": {
+        "name": "Nächste Stoppzeit"
+      },
+      "monat_fahrten": {
+        "name": "Fahrtenbuch Monat Fahrten"
+      },
+      "monat_km": {
+        "name": "Fahrtenbuch Monat km"
+      },
+      "monat_kwh": {
+        "name": "Fahrtenbuch Monat kWh"
+      },
+      "monat_kwh_pro_100km": {
+        "name": "Fahrtenbuch Monat kWh pro 100 km"
+      },
+      "monat_kwh_pro_fahrt": {
+        "name": "Fahrtenbuch Monat kWh pro Fahrt"
+      },
+      "gesamt_fahrten": {
+        "name": "Fahrtenbuch Gesamt Fahrten"
+      },
+      "gesamt_km": {
+        "name": "Fahrtenbuch Gesamt km"
+      },
+      "gesamt_kwh": {
+        "name": "Fahrtenbuch Gesamt kWh"
+      },
+      "gesamt_kwh_pro_100km": {
+        "name": "Fahrtenbuch Gesamt kWh pro 100 km"
+      },
+      "gesamt_kwh_pro_fahrt": {
+        "name": "Fahrtenbuch Gesamt kWh pro Fahrt"
+      }
+    },
+    "binary_sensor": {
+      "angesteckt": {
+        "name": "Angesteckt"
+      },
+      "in_bewegung": {
+        "name": "In Bewegung"
+      },
+      "daten_aktuell": {
+        "name": "Cloud-Daten aktuell"
+      },
+      "fahrt_aktiv": {
+        "name": "Fahrt aktiv"
+      }
+    },
+    "device_tracker": {
+      "standort": {
+        "name": "Standort"
+      }
+    },
+    "button": {
+      "wakeup": {
+        "name": "Wakeup"
+      },
+      "hupe": {
+        "name": "Hupe"
+      },
+      "lichter": {
+        "name": "Lichter"
+      },
+      "tueren_verriegeln": {
+        "name": "Türen verriegeln"
+      },
+      "tueren_entriegeln": {
+        "name": "Türen entriegeln"
+      },
+      "aktueller_monat": {
+        "name": "Fahrtenbuch aktueller Monat"
+      },
+      "hinweis_speichern": {
+        "name": "Fahrtenbuch Hinweis speichern"
+      }
+    },
+    "switch": {
+      "vorklimatisierung": {
+        "name": "Vorklimatisierung"
+      }
+    },
+    "number": {
+      "ladelimit": {
+        "name": "Ladelimit"
+      },
+      "akkukapazitaet": {
+        "name": "Akkukapazität"
+      },
+      "fahrtenbuch_jahr": {
+        "name": "Fahrtenbuch Jahr"
+      },
+      "fahrtenbuch_bearbeiten_id": {
+        "name": "Fahrtenbuch Bearbeiten-ID"
+      }
+    },
+    "select": {
+      "fahrtenbuch_monat": {
+        "name": "Fahrtenbuch Monat"
+      }
+    },
+    "text": {
+      "fahrtenbuch_hinweis": {
+        "name": "Fahrtenbuch Hinweis"
+      }
+    },
+    "time": {
+      "ladezeit": {
+        "name": "Ladezeit"
+      }
+    }
+  },
+  "services": {
+    "hinweis_setzen": {
+      "name": "Hinweis setzen",
+      "description": "Setzt den Hinweis-/Kommentartext einer Fahrt per ID."
+    },
+    "soc_anstieg_setzen": {
+      "name": "SoC-Anstieg setzen",
+      "description": "Setzt oder löscht die Markierung 'SoC Anstieg'."
+    },
+    "fahrten_abfragen": {
+      "name": "Fahrten abfragen",
+      "description": "Liefert Fahrten und Kennzahlen eines Monats oder die Gesamtsumme."
+    },
+    "fahrt_hinzufuegen": {
+      "name": "Fahrt hinzufügen",
+      "description": "Trägt eine Fahrt nach (Rekonstruktion)."
+    },
+    "auswahl_setzen": {
+      "name": "Auswahl setzen",
+      "description": "Setzt Monat/Jahr der Fahrtenbuch-Ansicht."
+    },
+    "wakeup": {
+      "name": "Wakeup",
+      "description": "Weckt das Fahrzeug über psacc."
+    }
+  }
+}

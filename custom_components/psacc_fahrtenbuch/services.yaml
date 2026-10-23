@@ -1,0 +1,34 @@
+hinweis_setzen:
+  fields:
+    fahrt_id: {required: true, selector: {number: {min: 1, mode: box}}}
+    hinweis: {required: true, selector: {text: {}}}
+soc_anstieg_setzen:
+  fields:
+    fahrt_id: {required: true, selector: {number: {min: 1, mode: box}}}
+    wert: {required: true, selector: {boolean: {}}}
+fahrten_abfragen:
+  fields:
+    jahr: {selector: {number: {min: 2000, max: 2100, mode: box}}}
+    monat: {selector: {number: {min: 1, max: 12, mode: box}}}
+    gesamt: {selector: {boolean: {}}}
+fahrt_hinzufuegen:
+  fields:
+    start_zeit: {required: true, example: "2026-01-01 08:00:00", selector: {text: {}}}
+    start_ort: {required: true, selector: {text: {}}}
+    end_zeit: {required: true, example: "2026-01-01 08:30:00", selector: {text: {}}}
+    end_ort: {required: true, selector: {text: {}}}
+    distanz_km: {required: true, selector: {number: {min: 0, mode: box, step: any}}}
+    dauer_min: {required: true, selector: {number: {min: 0, mode: box, step: any}}}
+    geschwindigkeit_kmh: {required: true, selector: {number: {min: 0, mode: box, step: any}}}
+    verbrauch_kwh: {required: true, selector: {number: {min: 0, mode: box, step: any}}}
+    soc_start: {required: true, selector: {number: {min: 0, max: 100, mode: box}}}
+    soc_end: {required: true, selector: {number: {min: 0, max: 100, mode: box}}}
+    km_start: {required: true, selector: {number: {min: 0, mode: box, step: any}}}
+    km_end: {required: true, selector: {number: {min: 0, mode: box, step: any}}}
+    hinweis: {selector: {text: {}}}
+    soc_anstieg: {selector: {text: {}}}
+auswahl_setzen:
+  fields:
+    jahr: {selector: {number: {min: 2000, max: 2100, mode: box}}}
+    monat: {selector: {number: {min: 1, max: 12, mode: box}}}
+wakeup: {}

@@ -1,0 +1,8 @@
+{
+ "_next_stop_hour": null,
+ "_stop_hour": null,
+ "percentage_threshold": 100,
+ "retry_count": 0,
+ "vin": "VF0TESTVIN0000000",
+ "wakeup_timeout": 10
+}
