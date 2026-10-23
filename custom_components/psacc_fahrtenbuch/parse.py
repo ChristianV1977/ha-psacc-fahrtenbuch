@@ -64,6 +64,14 @@ def _num(value: Any, cast=float) -> Any:
         return None
 
 
+def _remaining(charging: dict) -> float | None:
+    """Restzeit in Minuten. PT0S waehrend des Ladens heisst: Fahrzeug meldet (noch) keine Schaetzung -> unbekannt."""
+    minutes = parse_iso_duration_minutes(charging.get("remaining_time"))
+    if minutes == 0 and charging.get("status") == "InProgress":
+        return None
+    return minutes
+
+
 def parse_info(info: dict | None) -> dict[str, Any]:
     """Aus der psacc-Antwort alle von der Integration genutzten Werte ziehen."""
     info = info or {}
@@ -90,7 +98,7 @@ def parse_info(info: dict | None) -> dict[str, Any]:
         "lademodus": CHARGING_MODE.get(charging.get("charging_mode"), "none") if energy else None,
         "laderate": charging.get("charging_rate"),
         "ladestatus": CHARGING_STATUS.get(charging.get("status"), "unknown") if energy else None,
-        "verbleibende_ladezeit": parse_iso_duration_minutes(charging.get("remaining_time")),
+        "verbleibende_ladezeit": _remaining(charging),
         "vorklimatisierung_status": dig(info, "preconditionning", "air_conditioning", "status"),
         "vorklimatisierung_fehler": FAILURE_CAUSES.get(
             dig(info, "preconditionning", "air_conditioning", "failure_cause"), None

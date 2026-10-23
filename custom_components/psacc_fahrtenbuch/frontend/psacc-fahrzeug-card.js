@@ -93,10 +93,10 @@ export function formatUpdated(iso, language, timeZone) {
 /** Zeile unter dem Stand: nur beim Laden mit Restzeit > 0. */
 export function chargeInfo(status, remainingMinutes, rate, language) {
   if (!isValid(status) || status.state !== "in_progress") return "";
-  if (!isValid(remainingMinutes)) return "";
-  const dur = formatDuration(remainingMinutes.state);
-  if (!dur) return "";
-  let text = `Fertig in ${dur}`;
+  // Beim Laden immer "Laedt"; Restzeit und Laderate nur, wenn das Fahrzeug sie meldet (> 0)
+  let text = "Lädt";
+  const dur = isValid(remainingMinutes) ? formatDuration(remainingMinutes.state) : "";
+  if (dur) text = `Fertig in ${dur}`;
   if (isValid(rate) && Number(rate.state) > 0) text += ` · +${formatNumber(rate.state, language, 0)} km/h`;
   return text;
 }
@@ -114,10 +114,11 @@ export function socColor(soc) {
   return "var(--success-color, #43a047)";
 }
 
-export function batteryIcon(soc) {
+export function batteryIcon(soc, charging = false) {
   const v = Number(soc);
   if (!Number.isFinite(v)) return "mdi:battery-unknown";
   const step = Math.max(0, Math.min(100, Math.round(v / 10) * 10));
+  if (charging) return step <= 0 ? "mdi:battery-charging-outline" : `mdi:battery-charging-${step}`;
   return step >= 100 ? "mdi:battery" : step <= 0 ? "mdi:battery-outline" : `mdi:battery-${step}`;
 }
 
@@ -291,7 +292,7 @@ if (typeof window !== "undefined" && typeof customElements !== "undefined") {
               ${c.show_range && ids.range ? html`<div class="row text ${dim}" @click=${() => this._moreInfo("range")}>
                 ${this._val("range", 0)}</div>` : ""}
               ${c.show_soc && ids.soc ? html`<div class="row text ${dim}" @click=${() => this._moreInfo("soc")}>
-                <ha-icon class="inline" icon=${batteryIcon(socOk ? S.soc.state : NaN)} style="color:${socOk ? socColor(S.soc.state) : grey}"></ha-icon>
+                <ha-icon class="inline" icon=${batteryIcon(socOk ? S.soc.state : NaN, isValid(S.charge_status) && S.charge_status.state === "in_progress")} style="color:${socOk ? socColor(S.soc.state) : grey}"></ha-icon>
                 ${this._val("soc", 0)}</div>` : ""}
               ${c.show_limit && ids.limit ? html`<div class="row text limit ${dim}" style=${nodata ? "pointer-events:none;" : ""}>
                 <span class="btn" @click=${() => this._changeLimit(-1)}>−</span>

@@ -20,7 +20,7 @@ CAR: tuple[SensorEntityDescription, ...] = (
     SensorEntityDescription(key="geschwindigkeit", device_class=SensorDeviceClass.SPEED, native_unit_of_measurement=UnitOfSpeed.KILOMETERS_PER_HOUR, state_class=SensorStateClass.MEASUREMENT),
     SensorEntityDescription(key="tueren", icon="mdi:car-door"),
     SensorEntityDescription(key="lademodus", device_class=SensorDeviceClass.ENUM, options=["fast", "slow", "none"], icon="mdi:ev-plug-type2"),
-    SensorEntityDescription(key="laderate", icon="mdi:speedometer"),
+    SensorEntityDescription(key="laderate", native_unit_of_measurement=UnitOfSpeed.KILOMETERS_PER_HOUR, state_class=SensorStateClass.MEASUREMENT, icon="mdi:speedometer"),
     SensorEntityDescription(key="ladestatus", device_class=SensorDeviceClass.ENUM, options=["failure", "in_progress", "stopped", "finished", "disconnected", "unknown"], icon="mdi:ev-station"),
     SensorEntityDescription(key="verbleibende_ladezeit", device_class=SensorDeviceClass.DURATION, native_unit_of_measurement=UnitOfTime.MINUTES),
     SensorEntityDescription(key="vorklimatisierung_status", icon="mdi:air-conditioner"),

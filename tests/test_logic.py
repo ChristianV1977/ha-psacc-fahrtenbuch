@@ -105,3 +105,18 @@ def test_month_sorted_desc(db):
     db.insert_trip(trip(start_zeit="2026-05-01 08:00:00", end_zeit="2026-05-01 09:00:00"))
     db.insert_trip(trip(start_zeit="2026-05-02 08:00:00", end_zeit="2026-05-02 09:00:00"))
     assert [t["start_zeit"][:10] for t in db.month(2026, 5)["trips"]] == ["2026-05-02", "2026-05-01"]
+
+
+def _info(status, remaining):
+    return {"energy": [{"level": 50.0, "charging": {"charging_mode": "Slow", "charging_rate": 6, "plugged": True,
+                                                     "remaining_time": remaining, "status": status}}]}
+
+
+def test_remaining_time_real_formats():
+    # Format wie vom psacc-Add-on: ISO-8601-Dauer
+    assert parse_info(_info("InProgress", "PT10H30M"))["verbleibende_ladezeit"] == 630
+    # Beim Laden ohne Schaetzung meldet das Fahrzeug PT0S -> unbekannt statt 0
+    assert parse_info(_info("InProgress", "PT0S"))["verbleibende_ladezeit"] is None
+    # Nicht ladend bleibt 0 erhalten
+    assert parse_info(_info("Disconnected", "PT0S"))["verbleibende_ladezeit"] == 0
+    assert parse_info(_info("InProgress", "PT0S"))["laderate"] == 6
