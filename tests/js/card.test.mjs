@@ -64,7 +64,8 @@ const st = (state, attributes = {}) => ({ state, attributes });
 test("Ladeinfo nur beim Laden mit Restzeit > 0", () => {
   assert.equal(chargeInfo(st("in_progress"), st("90"), st("11"), "de"), "Fertig in 1 h 30 min · +11 km/h");
   assert.equal(chargeInfo(st("in_progress"), st("90"), st("unavailable"), "de"), "Fertig in 1 h 30 min");
-  assert.equal(chargeInfo(st("in_progress"), st("0"), st("11"), "de"), "");
+  assert.equal(chargeInfo(st("in_progress"), st("0"), st("11"), "de"), "Lädt · +11 km/h");
+  assert.equal(chargeInfo(st("in_progress"), st("unknown"), st("0"), "de"), "Lädt");
   assert.equal(chargeInfo(st("disconnected"), st("90"), st("11"), "de"), "");
   assert.equal(chargeInfo(undefined, st("90"), st("11"), "de"), "");
 });
@@ -91,6 +92,9 @@ test("Farben und Icons", () => {
   assert.equal(batteryIcon(100), "mdi:battery");
   assert.equal(batteryIcon(2), "mdi:battery-outline");
   assert.equal(batteryIcon(NaN), "mdi:battery-unknown");
+  assert.equal(batteryIcon(53, true), "mdi:battery-charging-50");
+  assert.equal(batteryIcon(2, true), "mdi:battery-charging-outline");
+  assert.equal(batteryIcon(100, true), "mdi:battery-charging-100");
 });
 
 test("Ladelimit-Schritte", () => {
