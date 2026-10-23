@@ -288,3 +288,21 @@ async def test_unload_cancels_listeners(hass, setup, psacc, freezer):
     async_fire_time_changed(hass, dt_util.utcnow())
     await hass.async_block_till_done()
     assert psacc.calls("/wakeup/") == []
+
+
+async def test_trip_ended_while_ha_was_down_is_closed_on_setup(hass, setup, psacc, freezer):
+    """Zuendung ging waehrend HA-Ausfall auf Stop: die gespeicherte Fahrt darf nicht ewig 'aktiv' bleiben."""
+    await start_trip(hass, setup, psacc)
+    assert await hass.config_entries.async_unload(setup.entry_id)
+    freezer.move_to("2026-01-01 12:41:00+00:00")
+    psacc.set_ign("Stop", soc=49, km=38081.2, updated=END_TS)
+    assert await hass.config_entries.async_setup(setup.entry_id)
+    await hass.async_block_till_done()
+    got = await rows(hass, setup)
+    assert len(got) == 1 and got[0]["start_zeit"] == START_LOCAL and got[0]["km_end"] == 38081.2
+    assert await active(hass, setup) is None
+    assert hass.states.get("binary_sensor.mokka_fahrt_aktiv").state == "off"
+
+
+async def test_vehicleinfo_uses_cache_parameter(hass, setup, psacc):
+    assert all("from_cache=1" in str(c[1]) for c in psacc.calls("/get_vehicleinfo/"))

@@ -67,6 +67,9 @@ class Manager:
         await self._load_draft()
         self._prev_ign = self.coordinator.data["p"]["zuendung"] if self.coordinator.data else None
         self._unsub.append(self.coordinator.async_add_listener(self._on_update))
+        if self.active and self._prev_ign == "Stop":
+            # Fahrt endete waehrend HA nicht lief: sonst bliebe sie aktiv und verschmilzt mit der naechsten
+            self.hass.async_create_task(self._end())
         opts = self.entry.options
         if opts.get(CONF_WAKEUP_HOURLY, True):
             self._unsub.append(async_track_time_change(self.hass, self._wakeup_cb, minute=0, second=0))
