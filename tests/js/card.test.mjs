@@ -156,3 +156,12 @@ test("A/C: Schalten mit Bestaetigung und Sperre", () => {
   assert.equal(pendingStatus(p, st("off"), 1000 + 240000, 240000), "timeout");
   assert.equal(normalizeConfig({ device_id: "d" }).climate_timeout, 240000);
 });
+
+test("A/C-Bedienung: Tap per click, Halten nur ohne Pending, Pending nicht klick-blockiert", async () => {
+  const { readFileSync } = await import("node:fs");
+  const src = readFileSync(new URL("../../custom_components/psacc_fahrtenbuch/frontend/psacc-fahrzeug-card.js", import.meta.url), "utf8");
+  assert.match(src, /@click=\$\{climate\.onclick\}/);
+  assert.match(src, /if \(!this\._ac\) this\._moreInfo\(el\)/);
+  assert.match(src, /this\._flash\("schaltet…"\)/);
+  assert.doesNotMatch(src, /\.icon\.pending \{ pointer-events/);
+});

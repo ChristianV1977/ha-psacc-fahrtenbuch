@@ -96,3 +96,4 @@ HACS unterstützt nur öffentliche GitHub-Repositories. Die Entwicklung läuft a
 ## Änderungen
 
 - **1.0.6** Karte: Stecker-Farben (Variante B: rot nur bei Ladefehler, grau + Tooltip "Stecker: nicht bestätigt" wenn nicht angesteckt); A/C zeigt "schaltet…" (Puls, bei reduzierter Bewegung Farbe), sperrt Klicks bis zur Bestätigung oder `climate_timeout`, schaltet mit explizitem turn_on/turn_off statt toggle.
+- **1.0.7** Karte: A/C-Tippen schaltet zuverlässig (natives Klick-Ereignis statt Pointer-Heuristik); More-Info nur per Gedrückthalten (700 ms, bei Bewegung abgebrochen) und nicht während "schaltet…"; Tippen während Pending zeigt "schaltet…" statt Dialog.

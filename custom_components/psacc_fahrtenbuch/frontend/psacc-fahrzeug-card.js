@@ -2,7 +2,8 @@
  * ES-Modul ohne Build. Lit wird aus Home Assistant bezogen. Die reinen Funktionen sind exportiert
  * (Tests: tests/js/card.test.mjs, nur Entwicklung). */
 
-export const CARD_VERSION = "1.0.6";
+export const CARD_VERSION = "1.0.7";
+const HOLD_MS = 700;
 export const DOMAIN = "psacc_fahrtenbuch";
 export const DEFAULT_IMAGE = "/psacc_fahrtenbuch/frontend/fahrzeug.svg";
 
@@ -256,12 +257,14 @@ if (typeof window !== "undefined" && typeof customElements !== "undefined") {
       }
 
       _bind(el, onTap) {
-        // Tap = onTap/more-info, langer Druck = more-info
-        let timer, held = false;
+        // Tap = natives click (onTap/more-info); Gedrueckthalten = more-info, ausser waehrend Pending. Bewegung/Abbruch verwirft den Halte-Timer.
+        let timer, held = false, x = 0, y = 0;
+        const cancel = () => clearTimeout(timer);
         return {
-          onpointerdown: () => { held = false; timer = setTimeout(() => { held = true; this._moreInfo(el); }, 500); },
-          onpointerup: () => { clearTimeout(timer); if (!held) (onTap ? onTap() : this._moreInfo(el)); },
-          onpointerleave: () => clearTimeout(timer),
+          onpointerdown: (e) => { held = false; x = e.clientX; y = e.clientY; cancel(); timer = setTimeout(() => { held = true; if (!this._ac) this._moreInfo(el); }, HOLD_MS); },
+          onpointermove: (e) => { if (Math.hypot(e.clientX - x, e.clientY - y) > 10) cancel(); },
+          onpointerup: cancel, onpointercancel: cancel, onpointerleave: cancel,
+          onclick: () => { if (held) { held = false; return; } onTap ? onTap() : this._moreInfo(el); },
         };
       }
 
@@ -270,6 +273,7 @@ if (typeof window !== "undefined" && typeof customElements !== "undefined") {
       // Bestaetigung kommt als Zustandswechsel der switch-Entity; bis dahin (oder bis Zeitlimit) sind weitere Klicks gesperrt
       _toggleClimate() {
         const id = this._ids.climate;
+        if (id && this._ac) { this._flash("schaltet…"); return; }
         const action = id && climateAction(this._ac, this._st("climate"));
         if (!action) return;
         this._ac = { target: action === "turn_on" ? "on" : "off", at: Date.now() };
@@ -344,7 +348,7 @@ if (typeof window !== "undefined" && typeof customElements !== "undefined") {
               ${head.info ? html`<span class="info">${head.info}</span>` : ""}</div>` : ""}
             ${(c.show_climate && ids.climate) || (c.show_plug && ids.plug) ? html`<div class="symbols" style=${symbolsStyle()}>
               ${c.show_climate && ids.climate ? html`<div class="icon ${dim} ${this._ac ? "pending" : ""}" style=${nodata ? "pointer-events:none;" : ""}
-                  title=${this._ac ? "schaltet…" : ""} @pointerdown=${climate.onpointerdown} @pointerup=${climate.onpointerup} @pointerleave=${climate.onpointerleave}>
+                  title=${this._ac ? "schaltet…" : ""} @pointerdown=${climate.onpointerdown} @pointermove=${climate.onpointermove} @pointerup=${climate.onpointerup} @pointercancel=${climate.onpointercancel} @pointerleave=${climate.onpointerleave} @click=${climate.onclick}>
                 <ha-icon icon="mdi:air-conditioner" style="color:${isValid(S.climate) ? (S.climate.state === "on" ? "var(--primary-color, #03a9f4)" : "#fff") : grey}"></ha-icon></div>` : html`<span></span>`}
               ${c.show_plug && ids.plug ? html`<div class="icon ${dim}" title=${plugTitle(S.plug, S.charge_status)} @click=${() => this._moreInfo("plug")}>
                 <ha-icon icon="mdi:ev-plug-type2" style="color:${plugColor(S.plug, S.charge_status)}"></ha-icon></div>` : ""}
@@ -384,7 +388,7 @@ if (typeof window !== "undefined" && typeof customElements !== "undefined") {
           .icon ha-icon { --mdc-icon-size: 32px; filter: drop-shadow(1px 1px 2px rgba(0,0,0,.9)); }
           .inline { --mdc-icon-size: 24px; vertical-align: middle; filter: drop-shadow(1px 1px 2px rgba(0,0,0,.9)); }
           .dim { opacity: .45; }
-          .icon.pending { pointer-events: none; animation: psacc-pulse 1.2s ease-in-out infinite; }
+          .icon.pending { animation: psacc-pulse 1.2s ease-in-out infinite; }
           .icon.pending ha-icon { color: var(--warning-color, #ffa600) !important; }
           @keyframes psacc-pulse { 50% { opacity: .35; } }
           @media (prefers-reduced-motion: reduce) { .icon.pending { animation: none; } }
