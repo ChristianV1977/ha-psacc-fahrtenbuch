@@ -2,7 +2,7 @@
  * ES-Modul ohne Build. Lit wird aus Home Assistant bezogen. Die reinen Funktionen sind exportiert
  * (Tests: tests/js/card.test.mjs, nur Entwicklung). */
 
-export const CARD_VERSION = "1.0.7";
+export const CARD_VERSION = "1.0.8";
 const HOLD_MS = 700;
 export const DOMAIN = "psacc_fahrtenbuch";
 export const DEFAULT_IMAGE = "/psacc_fahrtenbuch/frontend/fahrzeug.svg";
@@ -35,6 +35,11 @@ export const LAYOUT = {
 const BAD = new Set(["unavailable", "unknown", undefined, null, ""]);
 
 /** Abstand/Seitenrand der Symbolzeile unter der Kopfzeile (Vierergruppe liegt oben im Bild, % der Kartenbreite). */
+// Hinweis unter dem A/C-Symbol: gleicher Seitenrand wie die Symbolzeile, linksbuendig
+export function noticeStyle(layout = LAYOUT) {
+  return `padding:0 ${layout.symbols.side}%;`;
+}
+
 export function symbolsStyle(layout = LAYOUT) {
   return `margin-top:${layout.symbols.gap}%;padding:0 ${layout.symbols.side}%;`;
 }
@@ -353,7 +358,7 @@ if (typeof window !== "undefined" && typeof customElements !== "undefined") {
               ${c.show_plug && ids.plug ? html`<div class="icon ${dim}" title=${plugTitle(S.plug, S.charge_status)} @click=${() => this._moreInfo("plug")}>
                 <ha-icon icon="mdi:ev-plug-type2" style="color:${plugColor(S.plug, S.charge_status)}"></ha-icon></div>` : ""}
             </div>` : ""}
-            ${this._notice ? html`<div class="notice">${this._notice}</div>` : ""}
+            ${this._notice ? html`<div class="notice" style=${noticeStyle()}>${this._notice}</div>` : ""}
             </div>
             ${(c.show_range && ids.range) || (c.show_soc && ids.soc) || (c.show_limit && ids.limit) ? html`<div class="stack" style=${stackStyle()}>
               ${c.show_range && ids.range ? html`<div class="row text ${dim}" @click=${() => this._moreInfo("range")}>
@@ -392,7 +397,7 @@ if (typeof window !== "undefined" && typeof customElements !== "undefined") {
           .icon.pending ha-icon { color: var(--warning-color, #ffa600) !important; }
           @keyframes psacc-pulse { 50% { opacity: .35; } }
           @media (prefers-reduced-motion: reduce) { .icon.pending { animation: none; } }
-          .notice { padding: 2px 12px 4px; font-size: .9em; color: #fff; text-align: center; text-shadow: 0 0 4px rgba(0,0,0,.9); }
+          .notice { padding-top: 2px; padding-bottom: 4px; font-size: .85em; line-height: 1.2; color: #fff; text-align: left; overflow-wrap: anywhere; text-shadow: 0 0 4px rgba(0,0,0,.9), 1px 1px 2px rgba(0,0,0,.9); }
           .stack { position: absolute; display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
           .row { cursor: pointer; user-select: none; white-space: nowrap; display: flex; align-items: center; justify-content: flex-end; gap: 6px; }
           .limit { gap: 10px; }

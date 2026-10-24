@@ -3,7 +3,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   resolveEntities, formatDuration, formatNumber, chargeInfo, hasNoData, plugColor, socColor, batteryIcon,
-  stepLimit, normalizeConfig, isValid, formatUpdated, LAYOUT, stackStyle, headerParts, symbolsStyle,
+  stepLimit, normalizeConfig, isValid, formatUpdated, LAYOUT, stackStyle, headerParts, symbolsStyle, noticeStyle,
   plugTitle, climateAction, pendingStatus,
 } from "../../custom_components/psacc_fahrtenbuch/frontend/psacc-fahrzeug-card.js";
 
@@ -164,4 +164,8 @@ test("A/C-Bedienung: Tap per click, Halten nur ohne Pending, Pending nicht klick
   assert.match(src, /if \(!this\._ac\) this\._moreInfo\(el\)/);
   assert.match(src, /this\._flash\("schaltet…"\)/);
   assert.doesNotMatch(src, /\.icon\.pending \{ pointer-events/);
+});
+
+test("Hinweis: gleicher Seitenrand wie Symbolzeile (linksbuendig unter A/C)", () => {
+  assert.equal(noticeStyle(), `padding:0 ${LAYOUT.symbols.side}%;`);
 });
