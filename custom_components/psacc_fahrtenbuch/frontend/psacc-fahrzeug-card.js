@@ -2,6 +2,7 @@
  * ES-Modul ohne Build. Lit wird aus Home Assistant bezogen. Die reinen Funktionen sind exportiert
  * (Tests: tests/js/card.test.mjs, nur Entwicklung). */
 
+export const CARD_VERSION = "1.0.6";
 export const DOMAIN = "psacc_fahrtenbuch";
 export const DEFAULT_IMAGE = "/psacc_fahrtenbuch/frontend/fahrzeug.svg";
 
@@ -133,11 +134,30 @@ export function batteryIcon(soc, charging = false) {
   return step >= 100 ? "mdi:battery" : step <= 0 ? "mdi:battery-outline" : `mdi:battery-${step}`;
 }
 
+/** Rot nur bei Ladefehler; grau = PSA meldet nicht angesteckt (oder unbekannt); gruen = laedt; orange = angesteckt, laedt nicht. */
 export function plugColor(plug, status) {
-  if (!isValid(plug)) return "var(--disabled-text-color, #9e9e9e)";
-  if (plug.state !== "on") return "var(--error-color, #db4437)";
+  if (isValid(status) && status.state === "failure") return "var(--error-color, #db4437)";
+  if (!isValid(plug) || plug.state !== "on") return "var(--disabled-text-color, #9e9e9e)";
   if (isValid(status) && status.state === "in_progress") return "var(--success-color, #43a047)";
   return "var(--warning-color, #ffa600)";
+}
+
+export function plugTitle(plug, status) {
+  if (isValid(status) && status.state === "failure") return "Stecker: Ladefehler";
+  if (!isValid(plug) || plug.state !== "on") return "Stecker: nicht bestätigt";
+  return isValid(status) && status.state === "in_progress" ? "Stecker: lädt" : "Stecker: angesteckt, lädt nicht";
+}
+
+/** Schalt-Befehl mit Bestaetigung: pending = {target:"on"|"off", at:ms} oder undefined. */
+export function climateAction(pending, stateObj) {
+  if (pending || !isValid(stateObj)) return null;
+  return stateObj.state === "on" ? "turn_off" : "turn_on";
+}
+
+/** "pending" | "confirmed" | "timeout" (Zielzustand erreicht bzw. Frist abgelaufen). */
+export function pendingStatus(pending, stateObj, now, timeoutMs) {
+  if (isValid(stateObj) && stateObj.state === pending.target) return "confirmed";
+  return now - pending.at >= timeoutMs ? "timeout" : "pending";
 }
 
 /** Ladelimit +/-: auf Raster und Bereich der number-Entity begrenzen. */
@@ -151,7 +171,7 @@ export function stepLimit(current, direction, step, min, max) {
 
 export const DEFAULTS = {
   show_climate: true, show_plug: true, show_range: true, show_soc: true, show_odometer: true,
-  show_charge_info: true, show_updated: true, show_limit: true, limit_step: 5, limit_delay: 3000,
+  show_charge_info: true, show_updated: true, show_limit: true, limit_step: 5, limit_delay: 3000, climate_timeout: 240000,
 };
 
 export function normalizeConfig(config) {
@@ -161,6 +181,7 @@ export function normalizeConfig(config) {
   const c = { ...DEFAULTS, ...config };
   c.limit_step = Math.min(20, Math.max(1, Number(c.limit_step) || DEFAULTS.limit_step));
   c.limit_delay = Math.max(0, Number(c.limit_delay ?? DEFAULTS.limit_delay));
+  c.climate_timeout = Math.max(5000, Number(c.climate_timeout ?? DEFAULTS.climate_timeout) || DEFAULTS.climate_timeout);
   return c;
 }
 
@@ -182,6 +203,7 @@ export const EDITOR_SCHEMA = [
   },
   { name: "limit_step", selector: { number: { min: 1, max: 20, mode: "box" } } },
   { name: "limit_delay", selector: { number: { min: 0, max: 30000, step: 100, unit_of_measurement: "ms", mode: "box" } } },
+  { name: "climate_timeout", selector: { number: { min: 5000, max: 900000, step: 1000, unit_of_measurement: "ms", mode: "box" } } },
 ];
 
 const EDITOR_LABELS = {
@@ -189,7 +211,7 @@ const EDITOR_LABELS = {
   show_updated: "Stand anzeigen", show_charge_info: "Ladeinfo anzeigen", show_climate: "Klima anzeigen",
   show_plug: "Stecker anzeigen", show_range: "Reichweite anzeigen", show_soc: "Ladestand anzeigen",
   show_odometer: "Fahrleistung anzeigen", show_limit: "Ladelimit anzeigen",
-  limit_step: "Ladelimit-Schritt", limit_delay: "Ladelimit-Verzögerung",
+  limit_step: "Ladelimit-Schritt", limit_delay: "Ladelimit-Verzögerung", climate_timeout: "Klima: Zeitlimit Bestätigung",
 };
 
 /* ---------------- Custom Elements (nur im Browser) ---------------- */
@@ -208,7 +230,7 @@ if (typeof window !== "undefined" && typeof customElements !== "undefined") {
     const { html, css } = LitElement.prototype;
 
     class PsaccFahrzeugCard extends LitElement {
-      static get properties() { return { hass: {}, _config: { state: true }, _pending: { state: true } }; }
+      static get properties() { return { hass: {}, _config: { state: true }, _pending: { state: true }, _ac: { state: true }, _notice: { state: true } }; }
 
       static async getConfigElement() { return document.createElement("psacc-fahrzeug-card-editor"); }
 
@@ -219,7 +241,7 @@ if (typeof window !== "undefined" && typeof customElements !== "undefined") {
         return dev?.primary_config_entry ? { config_entry_id: dev.primary_config_entry } : { device_id: ent.device_id };
       }
 
-      setConfig(config) { this._config = normalizeConfig(config); this._pending = undefined; }
+      setConfig(config) { this._config = normalizeConfig(config); this._pending = undefined; this._clearAc(); }
       getCardSize() { return 6; }
       getGridOptions() { return { columns: 12, rows: "auto", min_columns: 6 }; }
 
@@ -243,10 +265,35 @@ if (typeof window !== "undefined" && typeof customElements !== "undefined") {
         };
       }
 
+      _clearAc() { clearTimeout(this._acTimer); this._ac = undefined; }
+
+      // Bestaetigung kommt als Zustandswechsel der switch-Entity; bis dahin (oder bis Zeitlimit) sind weitere Klicks gesperrt
       _toggleClimate() {
         const id = this._ids.climate;
-        if (id) this.hass.callService("switch", "toggle", { entity_id: id });
+        const action = id && climateAction(this._ac, this._st("climate"));
+        if (!action) return;
+        this._ac = { target: action === "turn_on" ? "on" : "off", at: Date.now() };
+        this.hass.callService("switch", action, { entity_id: id }).catch(() => { this._clearAc(); this._flash("Befehl fehlgeschlagen"); });
+        this._acTimer = setTimeout(() => this._checkAc(), this._config.climate_timeout);
       }
+
+      _checkAc() {
+        if (!this._ac) return;
+        const r = pendingStatus(this._ac, this._st("climate"), Date.now(), this._config.climate_timeout);
+        if (r === "pending") return;
+        this._clearAc();
+        if (r === "timeout") this._flash("Befehl nicht bestätigt");
+      }
+
+      _flash(text) {
+        this._notice = text;
+        clearTimeout(this._noticeTimer);
+        this._noticeTimer = setTimeout(() => { this._notice = undefined; }, 6000);
+      }
+
+      willUpdate(changed) { if (changed.has("hass") && this._ac) this._checkAc(); }
+
+      disconnectedCallback() { super.disconnectedCallback?.(); clearTimeout(this._acTimer); clearTimeout(this._noticeTimer); }
 
       _changeLimit(direction) {
         const st = this._st("limit");
@@ -296,12 +343,13 @@ if (typeof window !== "undefined" && typeof customElements !== "undefined") {
               ${head.stand ? html`<span class="stand" @click=${() => this._moreInfo("updated")}>${head.stand}</span>` : html`<span></span>`}
               ${head.info ? html`<span class="info">${head.info}</span>` : ""}</div>` : ""}
             ${(c.show_climate && ids.climate) || (c.show_plug && ids.plug) ? html`<div class="symbols" style=${symbolsStyle()}>
-              ${c.show_climate && ids.climate ? html`<div class="icon ${dim}" style=${nodata ? "pointer-events:none;" : ""}
-                  @pointerdown=${climate.onpointerdown} @pointerup=${climate.onpointerup} @pointerleave=${climate.onpointerleave}>
+              ${c.show_climate && ids.climate ? html`<div class="icon ${dim} ${this._ac ? "pending" : ""}" style=${nodata ? "pointer-events:none;" : ""}
+                  title=${this._ac ? "schaltet…" : ""} @pointerdown=${climate.onpointerdown} @pointerup=${climate.onpointerup} @pointerleave=${climate.onpointerleave}>
                 <ha-icon icon="mdi:air-conditioner" style="color:${isValid(S.climate) ? (S.climate.state === "on" ? "var(--primary-color, #03a9f4)" : "#fff") : grey}"></ha-icon></div>` : html`<span></span>`}
-              ${c.show_plug && ids.plug ? html`<div class="icon ${dim}" @click=${() => this._moreInfo("plug")}>
+              ${c.show_plug && ids.plug ? html`<div class="icon ${dim}" title=${plugTitle(S.plug, S.charge_status)} @click=${() => this._moreInfo("plug")}>
                 <ha-icon icon="mdi:ev-plug-type2" style="color:${plugColor(S.plug, S.charge_status)}"></ha-icon></div>` : ""}
             </div>` : ""}
+            ${this._notice ? html`<div class="notice">${this._notice}</div>` : ""}
             </div>
             ${(c.show_range && ids.range) || (c.show_soc && ids.soc) || (c.show_limit && ids.limit) ? html`<div class="stack" style=${stackStyle()}>
               ${c.show_range && ids.range ? html`<div class="row text ${dim}" @click=${() => this._moreInfo("range")}>
@@ -336,6 +384,11 @@ if (typeof window !== "undefined" && typeof customElements !== "undefined") {
           .icon ha-icon { --mdc-icon-size: 32px; filter: drop-shadow(1px 1px 2px rgba(0,0,0,.9)); }
           .inline { --mdc-icon-size: 24px; vertical-align: middle; filter: drop-shadow(1px 1px 2px rgba(0,0,0,.9)); }
           .dim { opacity: .45; }
+          .icon.pending { pointer-events: none; animation: psacc-pulse 1.2s ease-in-out infinite; }
+          .icon.pending ha-icon { color: var(--warning-color, #ffa600) !important; }
+          @keyframes psacc-pulse { 50% { opacity: .35; } }
+          @media (prefers-reduced-motion: reduce) { .icon.pending { animation: none; } }
+          .notice { padding: 2px 12px 4px; font-size: .9em; color: #fff; text-align: center; text-shadow: 0 0 4px rgba(0,0,0,.9); }
           .stack { position: absolute; display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
           .row { cursor: pointer; user-select: none; white-space: nowrap; display: flex; align-items: center; justify-content: flex-end; gap: 6px; }
           .limit { gap: 10px; }

@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import {
   resolveEntities, formatDuration, formatNumber, chargeInfo, hasNoData, plugColor, socColor, batteryIcon,
   stepLimit, normalizeConfig, isValid, formatUpdated, LAYOUT, stackStyle, headerParts, symbolsStyle,
+  plugTitle, climateAction, pendingStatus,
 } from "../../custom_components/psacc_fahrtenbuch/frontend/psacc-fahrzeug-card.js";
 
 const ent = (entity_id, translation_key, device_id = "dev1", platform = "psacc_fahrtenbuch") =>
@@ -81,7 +82,10 @@ test("unavailable-Regeln", () => {
 });
 
 test("Farben und Icons", () => {
-  assert.match(plugColor(st("off"), st("disconnected")), /error/);
+  assert.match(plugColor(st("off"), st("disconnected")), /disabled/);
+  assert.match(plugColor(st("on"), st("failure")), /error/);
+  assert.match(plugColor(st("off"), st("failure")), /error/);
+  assert.equal(plugTitle(st("off"), st("disconnected")), "Stecker: nicht bestätigt");
   assert.match(plugColor(st("on"), st("stopped")), /warning/);
   assert.match(plugColor(st("on"), st("in_progress")), /success/);
   assert.match(plugColor(st("unavailable"), undefined), /disabled/);
@@ -139,4 +143,16 @@ test("Vierergruppe: Kopfzeile und Symbolzeile in einem Block oben im Bild, Absta
   assert.equal(LAYOUT.plug, undefined);
   assert.equal(symbolsStyle(), `margin-top:${LAYOUT.symbols.gap}%;padding:0 ${LAYOUT.symbols.side}%;`);
   assert.ok(LAYOUT.symbols.gap > 0 && LAYOUT.symbols.gap <= 3);
+});
+
+test("A/C: Schalten mit Bestaetigung und Sperre", () => {
+  assert.equal(climateAction(undefined, st("off")), "turn_on");
+  assert.equal(climateAction(undefined, st("on")), "turn_off");
+  assert.equal(climateAction({ target: "on", at: 0 }, st("off")), null); // gesperrt
+  assert.equal(climateAction(undefined, st("unavailable")), null);
+  const p = { target: "on", at: 1000 };
+  assert.equal(pendingStatus(p, st("off"), 2000, 240000), "pending");
+  assert.equal(pendingStatus(p, st("on"), 2000, 240000), "confirmed");
+  assert.equal(pendingStatus(p, st("off"), 1000 + 240000, 240000), "timeout");
+  assert.equal(normalizeConfig({ device_id: "d" }).climate_timeout, 240000);
 });
