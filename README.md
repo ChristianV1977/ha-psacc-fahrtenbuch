@@ -30,7 +30,7 @@ Die Fahrten liegen in `<config>/psacc_fahrtenbuch/fahrten.db`. Existiert dort be
 
 ## Lovelace-Karte `custom:psacc-fahrzeug-card`
 
-Die Integration liefert die Karte mit und lädt sie selbst (kein Lovelace-Resource-Eintrag nötig; nach dem ersten Start einmal den Browser-Cache leeren). Die Karte erscheint im Karten-Dialog als "PSA Fahrzeug". Sie zeigt Stand der Cloud-Daten, Ladeinfo, Klima (Tippen = umschalten, lange drücken = Details), Stecker (rot getrennt, orange angesteckt, grün lädt), Reichweite, Ladestand, Fahrleistung und das Ladelimit (− / +, wird nach `limit_delay` gesammelt gesetzt). Nicht verfügbare Werte erscheinen als "–"; fehlen Ladestand und Update, steht "Keine Fahrzeugdaten" in der Karte.
+Die Integration liefert die Karte mit und lädt sie selbst (kein Lovelace-Resource-Eintrag nötig; nach dem ersten Start einmal den Browser-Cache leeren). Die Karte erscheint im Karten-Dialog als "PSA Fahrzeug". Sie zeigt Stand der Cloud-Daten, Ladeinfo, Klima (Tippen = umschalten, lange drücken = Details; nach dem Tippen pulsiert das Symbol, bis das Fahrzeug den neuen Zustand meldet, weitere Taps sind solange gesperrt, nach `climate_timeout` erscheint "Befehl nicht bestätigt"), Stecker (grün lädt, orange angesteckt ohne Laden, grau = PSA meldet nicht angesteckt / nicht bestätigt, rot nur bei Ladefehler), Reichweite, Ladestand, Fahrleistung und das Ladelimit (− / +, wird nach `limit_delay` gesammelt gesetzt). Nicht verfügbare Werte erscheinen als "–"; fehlen Ladestand und Update, steht "Keine Fahrzeugdaten" in der Karte.
 
 ```yaml
 type: custom:psacc-fahrzeug-card
@@ -39,6 +39,7 @@ config_entry_id: <ID des Eintrags>   # oder device_id; im Editor per Dropdown
 # show_climate / show_plug / show_range / show_soc / show_odometer / show_charge_info / show_updated / show_limit: true
 # limit_step: 5      # 1..20
 # limit_delay: 3000  # ms
+# climate_timeout: 240000  # ms, Sperre/Frist fuer die Klima-Bestaetigung (min. 5000)
 # entities:          # optionaler Override je Element
 #   soc: sensor.mokka_batterie_soc
 #   range, odometer, charge_status, charge_time, charge_rate, updated, plug, limit, climate
@@ -91,3 +92,7 @@ Fahrten enthalten Orte und frei wählbare Hinweise (oft Personen). Die Fahrtenli
 ## Hinweis zu HACS und GitLab
 
 HACS unterstützt nur öffentliche GitHub-Repositories. Die Entwicklung läuft auf einer privaten GitLab-Instanz; das GitHub-Repo ist ein Spiegel. Nicht affiliiert mit Stellantis oder dem psacc-Projekt.
+
+## Änderungen
+
+- **1.0.6** Karte: Stecker-Farben (Variante B: rot nur bei Ladefehler, grau + Tooltip "Stecker: nicht bestätigt" wenn nicht angesteckt); A/C zeigt "schaltet…" (Puls, bei reduzierter Bewegung Farbe), sperrt Klicks bis zur Bestätigung oder `climate_timeout`, schaltet mit explizitem turn_on/turn_off statt toggle.
