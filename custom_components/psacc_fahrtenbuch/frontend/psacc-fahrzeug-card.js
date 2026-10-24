@@ -2,7 +2,7 @@
  * ES-Modul ohne Build. Lit wird aus Home Assistant bezogen. Die reinen Funktionen sind exportiert
  * (Tests: tests/js/card.test.mjs, nur Entwicklung). */
 
-export const CARD_VERSION = "1.0.9";
+export const CARD_VERSION = "1.0.10";
 const HOLD_MS = 700;
 export const DOMAIN = "psacc_fahrtenbuch";
 export const DEFAULT_IMAGE = "/psacc_fahrtenbuch/frontend/fahrzeug.svg";
@@ -361,7 +361,7 @@ if (typeof window !== "undefined" && typeof customElements !== "undefined") {
             ${(c.show_climate && ids.climate) || (c.show_plug && ids.plug) ? html`<div class="symbols" style=${symbolsStyle()}>
               ${c.show_climate && ids.climate ? html`<div class="icon ${dim} ${climateVisual(S.climate, this._ac)}" style=${nodata ? "pointer-events:none;" : ""}
                   title=${this._ac ? "schaltet…" : ""} @pointerdown=${climate.onpointerdown} @pointermove=${climate.onpointermove} @pointerup=${climate.onpointerup} @pointercancel=${climate.onpointercancel} @pointerleave=${climate.onpointerleave} @click=${climate.onclick}>
-                <ha-icon icon="mdi:air-conditioner"></ha-icon></div>` : html`<span></span>`}
+                <span class="disc"><ha-icon icon="mdi:fan"></ha-icon></span><span class="actext">A/C</span></div>` : html`<span></span>`}
               ${c.show_plug && ids.plug ? html`<div class="icon ${dim}" title=${plugTitle(S.plug, S.charge_status)} @click=${() => this._moreInfo("plug")}>
                 <ha-icon icon="mdi:ev-plug-type2" style="color:${plugColor(S.plug, S.charge_status)}"></ha-icon></div>` : ""}
             </div>` : ""}
@@ -390,6 +390,11 @@ if (typeof window !== "undefined" && typeof customElements !== "undefined") {
           .head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 2px 12px; padding: 6px 12px 2px; font-size: .95em; color: #fff; text-shadow: 0 0 4px rgba(0,0,0,.9), 1px 1px 2px rgba(0,0,0,.9); }
           .symbols { display: flex; justify-content: space-between; align-items: flex-start; }
           .symbols .icon { cursor: pointer; user-select: none; line-height: 0; }
+          .icon:has(.actext) { display: flex; flex-direction: column; align-items: center; gap: 1px; }
+          .actext { font-size: .7em; font-weight: 600; line-height: 1; color: #fff; text-shadow: 0 0 4px rgba(0,0,0,.9), 1px 1px 2px rgba(0,0,0,.9); }
+          .icon.unknown .actext { color: var(--disabled-text-color, #9e9e9e); }
+          .icon.pending .actext { color: var(--warning-color, #ffa600); }
+          .disc { display: inline-block; line-height: 0; }
           .head .stand { cursor: pointer; }
           .head .info { margin-left: auto; font-weight: 500; }
           .frame { position: relative; width: 100%; aspect-ratio: 4 / 3; background-size: cover; background-position: center; color: #fff; }
@@ -404,8 +409,8 @@ if (typeof window !== "undefined" && typeof customElements !== "undefined") {
           .icon.pending ha-icon { color: var(--warning-color, #ffa600) !important; }
           .icon.unknown ha-icon { color: var(--disabled-text-color, #9e9e9e); }
           .icon.off ha-icon { color: #fff; }
-          .symbols .icon.on { padding: 3px; margin: -3px; border-radius: 50%; background: linear-gradient(135deg, #1e88e5 0%, #1e88e5 45%, #e53935 55%, #e53935 100%); box-shadow: 0 0 10px 2px rgba(255,255,255,.35), 0 0 14px 4px rgba(229,57,53,.45), 0 0 14px 4px rgba(30,136,229,.45); }
-          .icon.on ha-icon { color: #fff; animation: psacc-spin 2.5s linear infinite; }
+          .symbols .icon.on .disc { padding: 3px; margin: -3px; border-radius: 50%; background: linear-gradient(135deg, #1e88e5 0%, #1e88e5 45%, #e53935 55%, #e53935 100%); box-shadow: 0 0 10px 2px rgba(255,255,255,.35), 0 0 14px 4px rgba(229,57,53,.45), 0 0 14px 4px rgba(30,136,229,.45); }
+          .icon.on ha-icon { color: #fff; display: inline-block; transform-origin: center; animation: psacc-spin 2.5s linear infinite; }
           @keyframes psacc-spin { to { transform: rotate(360deg); } }
           @keyframes psacc-pulse { 50% { opacity: .35; } }
           @media (prefers-reduced-motion: reduce) { .icon.pending, .icon.on ha-icon { animation: none; } }
