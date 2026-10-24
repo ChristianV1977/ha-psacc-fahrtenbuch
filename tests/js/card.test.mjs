@@ -3,7 +3,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   resolveEntities, formatDuration, formatNumber, chargeInfo, hasNoData, plugColor, socColor, batteryIcon,
-  stepLimit, normalizeConfig, isValid, formatUpdated, LAYOUT, stackStyle, headerParts, symbolsStyle, noticeStyle,
+  stepLimit, normalizeConfig, isValid, formatUpdated, LAYOUT, stackStyle, headerParts, symbolsStyle, noticeStyle, climateVisual,
   plugTitle, climateAction, pendingStatus,
 } from "../../custom_components/psacc_fahrtenbuch/frontend/psacc-fahrzeug-card.js";
 
@@ -168,4 +168,13 @@ test("A/C-Bedienung: Tap per click, Halten nur ohne Pending, Pending nicht klick
 
 test("Hinweis: gleicher Seitenrand wie Symbolzeile (linksbuendig unter A/C)", () => {
   assert.equal(noticeStyle(), `padding:0 ${LAYOUT.symbols.side}%;`);
+});
+
+test("A/C-Symbol: vier klar getrennte Zustaende", () => {
+  const st = (state) => ({ state });
+  assert.equal(climateVisual(st("off"), undefined), "off");
+  assert.equal(climateVisual(st("on"), undefined), "on");
+  assert.equal(climateVisual(st("on"), { target: "off", at: 0 }), "pending");
+  assert.equal(climateVisual(st("unavailable"), undefined), "unknown");
+  assert.equal(climateVisual(undefined, undefined), "unknown");
 });
