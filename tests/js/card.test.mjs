@@ -178,3 +178,14 @@ test("A/C-Symbol: vier klar getrennte Zustaende", () => {
   assert.equal(climateVisual(st("unavailable"), undefined), "unknown");
   assert.equal(climateVisual(undefined, undefined), "unknown");
 });
+
+test("A/C: nur der Luefter dreht (inline-block + Keyframes), Text statisch, reduced-motion beachtet", async () => {
+  const { readFileSync } = await import("node:fs");
+  const src = readFileSync(new URL("../../custom_components/psacc_fahrtenbuch/frontend/psacc-fahrzeug-card.js", import.meta.url), "utf8");
+  assert.match(src, /\.icon\.on ha-icon \{[^}]*display: inline-block[^}]*animation: psacc-spin 2\.5s linear infinite/);
+  assert.match(src, /@keyframes psacc-spin \{ to \{ transform: rotate\(360deg\)/);
+  assert.match(src, /icon="mdi:fan"/);
+  assert.match(src, /class="actext">A\/C</);
+  assert.doesNotMatch(src, /\.actext[^}]*animation/);
+  assert.match(src, /prefers-reduced-motion: reduce\) \{[^}]*\.icon\.on ha-icon \{ animation: none/);
+});
