@@ -83,11 +83,17 @@ sections:
 
 ## Screenshots
 
-Das Bild zeigt Demo-Werte; Orte, Zeiten und Hinweise der Fahrtenliste sind frei erfunden. Screenshot der Fahrzeugkarte folgt.
+Das Bild zeigt Demo-Werte; Orte, Zeiten und Hinweise der Fahrtenliste sind frei erfunden.
 
 **Fahrtenbuch-Dashboard** ([`examples/dashboard-fahrtenbuch.yaml`](examples/dashboard-fahrtenbuch.yaml)): Gesamt- und Monatsauswertung, Hinweis je Fahrt bearbeiten und die Fahrtenliste.
 
 ![Fahrtenbuch-Dashboard](docs/screenshots/fahrtenbuch.png)
+
+**Fahrzeugkarte** (`custom_components/psacc_fahrtenbuch/frontend/psacc-fahrzeug-card.js`, hier mit neutraler Silhouette statt Fahrzeugfoto):
+
+| A/C läuft, Laden aktiv | A/C schaltet… | A/C aus, angesteckt |
+| --- | --- | --- |
+| ![A/C läuft](docs/screenshots/fahrzeugkarte-laeuft.png) | ![A/C schaltet](docs/screenshots/fahrzeugkarte-schaltet.png) | ![A/C aus](docs/screenshots/fahrzeugkarte-aus.png) |
 
 ## Datenschutz
 
