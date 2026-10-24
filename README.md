@@ -81,6 +81,14 @@ sections:
           - sensor.mokka_laderate
 ```
 
+## Screenshots
+
+Das Bild zeigt Demo-Werte; Orte, Zeiten und Hinweise der Fahrtenliste sind frei erfunden. Screenshot der Fahrzeugkarte folgt.
+
+**Fahrtenbuch-Dashboard** ([`examples/dashboard-fahrtenbuch.yaml`](examples/dashboard-fahrtenbuch.yaml)): Gesamt- und Monatsauswertung, Hinweis je Fahrt bearbeiten und die Fahrtenliste.
+
+![Fahrtenbuch-Dashboard](docs/screenshots/fahrtenbuch.png)
+
 ## Datenschutz
 
 Fahrten enthalten Orte und frei wählbare Hinweise (oft Personen). Die Fahrtenliste (`trips`) ist per `_unrecorded_attributes` vom Recorder ausgenommen, Diagnosedaten schwärzen VIN, URL, Koordinaten und Fahrten. **Empfohlen:** `text.*_fahrtenbuch_hinweis` und `device_tracker.*` aus Recorder, Logbuch und InfluxDB ausschließen. Nominatim erhält nur Koordinaten außerhalb von Zonen. Das Repo enthält keine echten Daten (Tests nutzen fiktive Werte und anonymisierte Antworten).
