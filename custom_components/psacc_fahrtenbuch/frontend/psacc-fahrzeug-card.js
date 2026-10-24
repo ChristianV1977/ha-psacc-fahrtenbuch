@@ -2,7 +2,7 @@
  * ES-Modul ohne Build. Lit wird aus Home Assistant bezogen. Die reinen Funktionen sind exportiert
  * (Tests: tests/js/card.test.mjs, nur Entwicklung). */
 
-export const CARD_VERSION = "1.0.8";
+export const CARD_VERSION = "1.0.9";
 const HOLD_MS = 700;
 export const DOMAIN = "psacc_fahrtenbuch";
 export const DEFAULT_IMAGE = "/psacc_fahrtenbuch/frontend/fahrzeug.svg";
@@ -146,6 +146,13 @@ export function plugColor(plug, status) {
   if (!isValid(plug) || plug.state !== "on") return "var(--disabled-text-color, #9e9e9e)";
   if (isValid(status) && status.state === "in_progress") return "var(--success-color, #43a047)";
   return "var(--warning-color, #ffa600)";
+}
+
+// Zustand des A/C-Symbols: unknown (grau) | pending (orange pulsierend) | on (Blau/Rot drehend) | off (weiss)
+export function climateVisual(climate, pending) {
+  if (pending) return "pending";
+  if (!isValid(climate)) return "unknown";
+  return climate.state === "on" ? "on" : "off";
 }
 
 export function plugTitle(plug, status) {
@@ -352,9 +359,9 @@ if (typeof window !== "undefined" && typeof customElements !== "undefined") {
               ${head.stand ? html`<span class="stand" @click=${() => this._moreInfo("updated")}>${head.stand}</span>` : html`<span></span>`}
               ${head.info ? html`<span class="info">${head.info}</span>` : ""}</div>` : ""}
             ${(c.show_climate && ids.climate) || (c.show_plug && ids.plug) ? html`<div class="symbols" style=${symbolsStyle()}>
-              ${c.show_climate && ids.climate ? html`<div class="icon ${dim} ${this._ac ? "pending" : ""}" style=${nodata ? "pointer-events:none;" : ""}
+              ${c.show_climate && ids.climate ? html`<div class="icon ${dim} ${climateVisual(S.climate, this._ac)}" style=${nodata ? "pointer-events:none;" : ""}
                   title=${this._ac ? "schaltet…" : ""} @pointerdown=${climate.onpointerdown} @pointermove=${climate.onpointermove} @pointerup=${climate.onpointerup} @pointercancel=${climate.onpointercancel} @pointerleave=${climate.onpointerleave} @click=${climate.onclick}>
-                <ha-icon icon="mdi:air-conditioner" style="color:${isValid(S.climate) ? (S.climate.state === "on" ? "var(--primary-color, #03a9f4)" : "#fff") : grey}"></ha-icon></div>` : html`<span></span>`}
+                <ha-icon icon="mdi:air-conditioner"></ha-icon></div>` : html`<span></span>`}
               ${c.show_plug && ids.plug ? html`<div class="icon ${dim}" title=${plugTitle(S.plug, S.charge_status)} @click=${() => this._moreInfo("plug")}>
                 <ha-icon icon="mdi:ev-plug-type2" style="color:${plugColor(S.plug, S.charge_status)}"></ha-icon></div>` : ""}
             </div>` : ""}
@@ -395,8 +402,13 @@ if (typeof window !== "undefined" && typeof customElements !== "undefined") {
           .dim { opacity: .45; }
           .icon.pending { animation: psacc-pulse 1.2s ease-in-out infinite; }
           .icon.pending ha-icon { color: var(--warning-color, #ffa600) !important; }
+          .icon.unknown ha-icon { color: var(--disabled-text-color, #9e9e9e); }
+          .icon.off ha-icon { color: #fff; }
+          .symbols .icon.on { padding: 3px; margin: -3px; border-radius: 50%; background: linear-gradient(135deg, #1e88e5 0%, #1e88e5 45%, #e53935 55%, #e53935 100%); box-shadow: 0 0 10px 2px rgba(255,255,255,.35), 0 0 14px 4px rgba(229,57,53,.45), 0 0 14px 4px rgba(30,136,229,.45); }
+          .icon.on ha-icon { color: #fff; animation: psacc-spin 2.5s linear infinite; }
+          @keyframes psacc-spin { to { transform: rotate(360deg); } }
           @keyframes psacc-pulse { 50% { opacity: .35; } }
-          @media (prefers-reduced-motion: reduce) { .icon.pending { animation: none; } }
+          @media (prefers-reduced-motion: reduce) { .icon.pending, .icon.on ha-icon { animation: none; } }
           .notice { padding-top: 2px; padding-bottom: 4px; font-size: .85em; line-height: 1.2; color: #fff; text-align: left; overflow-wrap: anywhere; text-shadow: 0 0 4px rgba(0,0,0,.9), 1px 1px 2px rgba(0,0,0,.9); }
           .stack { position: absolute; display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
           .row { cursor: pointer; user-select: none; white-space: nowrap; display: flex; align-items: center; justify-content: flex-end; gap: 6px; }
