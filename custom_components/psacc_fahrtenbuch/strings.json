@@ -124,6 +124,23 @@
           "too_many_programs": "Too many unused programs"
         }
       },
+      "vorklimatisierung_zustand": {
+        "name": "Preconditioning state",
+        "state": {
+          "aus": "Off",
+          "angefordert": "Requested",
+          "laeuft": "Running",
+          "beendet": "Finished",
+          "nicht_gestartet": "Not started",
+          "fehlgeschlagen": "Failed"
+        }
+      },
+      "vorklimatisierung_restlaufzeit": {
+        "name": "Preconditioning remaining time"
+      },
+      "vorklimatisierung_antwort": {
+        "name": "Preconditioning response"
+      },
       "letztes_update": {
         "name": "Last update"
       },

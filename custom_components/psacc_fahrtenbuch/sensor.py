@@ -4,8 +4,9 @@ from dataclasses import dataclass
 from typing import Any, Callable
 
 from homeassistant.components.sensor import SensorDeviceClass, SensorEntity, SensorEntityDescription, SensorStateClass
-from homeassistant.const import PERCENTAGE, UnitOfElectricPotential, UnitOfEnergy, UnitOfLength, UnitOfSpeed, UnitOfTemperature, UnitOfTime
+from homeassistant.const import PERCENTAGE, EntityCategory, UnitOfElectricPotential, UnitOfEnergy, UnitOfLength, UnitOfSpeed, UnitOfTemperature, UnitOfTime
 
+from .precond import STATES
 from .entity import BookEntity, CarEntity
 
 CAR: tuple[SensorEntityDescription, ...] = (
@@ -25,6 +26,8 @@ CAR: tuple[SensorEntityDescription, ...] = (
     SensorEntityDescription(key="verbleibende_ladezeit", device_class=SensorDeviceClass.DURATION, native_unit_of_measurement=UnitOfTime.MINUTES),
     SensorEntityDescription(key="vorklimatisierung_status", icon="mdi:air-conditioner"),
     SensorEntityDescription(key="vorklimatisierung_fehler", device_class=SensorDeviceClass.ENUM, options=["defect", "door_opened", "low_battery", "low_fuel", "too_many_programs"], icon="mdi:information"),
+    SensorEntityDescription(key="vorklimatisierung_zustand", device_class=SensorDeviceClass.ENUM, options=STATES, icon="mdi:air-conditioner"),
+    SensorEntityDescription(key="vorklimatisierung_restlaufzeit", device_class=SensorDeviceClass.DURATION, native_unit_of_measurement=UnitOfTime.MINUTES),
     SensorEntityDescription(key="letztes_update", device_class=SensorDeviceClass.TIMESTAMP),
     SensorEntityDescription(key="naechste_stoppzeit", icon="mdi:clock-end"),
 )
@@ -52,6 +55,7 @@ def _book() -> tuple[BookDesc, ...]:
 async def async_setup_entry(hass, entry, async_add_entities):
     rt = entry.runtime_data
     async_add_entities([CarSensor(entry, rt.coordinator, d) for d in CAR])
+    async_add_entities([PrecondLogSensor(entry, rt.coordinator, "vorklimatisierung_antwort")])
     async_add_entities([BookSensor(entry, rt.manager, d) for d in _book()])
 
 
@@ -88,3 +92,25 @@ class BookSensor(BookEntity, SensorEntity):
             return {"jahr": self.manager.month_data.get("jahr"), "monat": self.manager.month_data.get("monat"),
                     "trips": self.manager.month_data.get("trips", [])}
         return None
+
+
+class PrecondLogSensor(CarEntity, SensorEntity):
+    """Letzte Rohantwort der Vorklimatisierung aus dem Add-on-Log, Verlauf als Attribut (bleibt ueber Neustarts)."""
+
+    _attr_icon = "mdi:message-text-clock"
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+
+    @property
+    def _log(self) -> list[dict]:
+        return self.coordinator.precond_log
+
+    @property
+    def native_value(self) -> str | None:
+        if not self._log:
+            return None
+        last = self._log[-1]
+        return f"{last['art']} {last['code']}".strip()
+
+    @property
+    def extra_state_attributes(self) -> dict | None:
+        return {"verlauf": list(reversed(self._log))} if self._log else None

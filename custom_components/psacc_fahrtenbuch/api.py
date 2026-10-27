@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from typing import Any
-from urllib.parse import quote
+from urllib.parse import quote, urlparse
 
 import aiohttp
 
@@ -30,6 +30,11 @@ class PsaccClient:
                     return None  # manche Kommandos antworten mit Text
         except (aiohttp.ClientError, TimeoutError) as err:
             raise PsaccError(type(err).__name__) from None
+
+    @property
+    def addon_slug(self) -> str:
+        """Supervisor-Slug des Add-ons aus dem Host der URL (b9f12d83-psacc -> b9f12d83_psacc)."""
+        return (urlparse(self._base).hostname or "").replace("-", "_")
 
     @property
     def _v(self) -> str:

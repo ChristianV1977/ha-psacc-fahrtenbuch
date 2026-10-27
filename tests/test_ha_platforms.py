@@ -25,6 +25,9 @@ EXPECTED = {
     "sensor.mokka_verbleibende_ladezeit": "0.0",
     "sensor.mokka_vorklimatisierung_status": "Disabled",
     "sensor.mokka_vorklimatisierung_fehler": STATE_UNKNOWN,
+    "sensor.mokka_vorklimatisierung_zustand": "aus",
+    "sensor.mokka_vorklimatisierung_restlaufzeit": STATE_UNKNOWN,
+    "sensor.mokka_vorklimatisierung_antwort": STATE_UNKNOWN,
     "sensor.mokka_letztes_update": "2026-01-01T12:00:00+00:00",
     "sensor.mokka_nachste_stoppzeit": STATE_UNKNOWN,
     # Fahrtenbuch-Sensoren (leere DB)
@@ -146,3 +149,55 @@ async def test_enabled_button_wakeup_and_enabled_horn(hass, setup, psacc):
     urls = [str(c[1]) for c in psacc.mock.mock_calls]
     for suffix in (f"/horn/{VIN}/3", f"/lights/{VIN}/10", f"/lock_door/{VIN}/1", f"/lock_door/{VIN}/0"):
         assert any(u.endswith(suffix) for u in urls), suffix
+
+
+async def test_precond_state_requested_then_not_started(hass, setup, psacc, freezer):
+    from datetime import timedelta
+    from pytest_homeassistant_custom_component.common import async_fire_time_changed
+    from homeassistant.util import dt as dt_util
+    sid = "sensor.mokka_vorklimatisierung_zustand"
+    await hass.services.async_call("switch", "turn_on", {"entity_id": "switch.mokka_vorklimatisierung"}, blocking=True)
+    await hass.async_block_till_done()
+    assert hass.states.get(sid).state == "angefordert"
+    freezer.tick(timedelta(seconds=150))
+    async_fire_time_changed(hass, dt_util.utcnow())
+    await hass.async_block_till_done()
+    assert hass.states.get(sid).state == "nicht_gestartet"
+
+
+async def test_precond_state_running_and_remaining(hass, setup, psacc, freezer):
+    from datetime import timedelta
+    from pytest_homeassistant_custom_component.common import async_fire_time_changed
+    from homeassistant.util import dt as dt_util
+    psacc.info["preconditionning"]["air_conditioning"]["status"] = "Enabled"
+    freezer.tick(timedelta(seconds=30))
+    async_fire_time_changed(hass, dt_util.utcnow())
+    await hass.async_block_till_done()
+    assert hass.states.get("sensor.mokka_vorklimatisierung_zustand").state == "laeuft"
+    assert hass.states.get("sensor.mokka_vorklimatisierung_restlaufzeit").state == "20"
+    freezer.tick(timedelta(minutes=11))
+    async_fire_time_changed(hass, dt_util.utcnow())
+    await hass.async_block_till_done()
+    assert hass.states.get("sensor.mokka_vorklimatisierung_restlaufzeit").state == "9"
+
+
+async def test_precond_log_sensor_from_addon_log(hass, setup, psacc):
+    from homeassistant.components.hassio import DATA_COMPONENT
+    from custom_components.psacc_fahrtenbuch.const import DOMAIN
+    from .conftest import VIN
+
+    log = ("2026-10-27 12:14:38,148 :: INFO :: mqtt msg received: psa/RemoteServices/to/cid/OV-X/ThermalPrecond "
+           f"b'{{\"resp_date\":\"2026-10-27T11:14:38Z\",\"vin\":\"{VIN}\",\"return_code\":\"300\"}}'\n")
+
+    class FakeHassio:
+        async def send_command(self, command, **kwargs):
+            assert command == "/addons/psacc.test/logs" and kwargs["return_text"] is True
+            return log
+
+    hass.data[DATA_COMPONENT] = FakeHassio()
+    coordinator = hass.config_entries.async_entries(DOMAIN)[0].runtime_data.coordinator
+    await coordinator._async_fetch_precond_log()
+    await hass.async_block_till_done()
+    state = hass.states.get("sensor.mokka_vorklimatisierung_antwort")
+    assert state.state == "antwort 300"
+    assert VIN not in str(state.attributes["verlauf"]) and "OV-X" not in str(state.attributes["verlauf"])

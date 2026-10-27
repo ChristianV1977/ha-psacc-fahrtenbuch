@@ -119,6 +119,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: PsaccConfigEntry) -> boo
     client = PsaccClient(async_get_clientsession(hass), entry.data[CONF_URL], entry.data[CONF_VIN])
     coordinator = PsaccCoordinator(hass, entry, client, entry.options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL))
     await coordinator.async_config_entry_first_refresh()
+    await coordinator.async_load_precond_log()
     manager = Manager(hass, entry, coordinator)
     await manager.async_setup()
     entry.runtime_data = RuntimeData(coordinator, manager)
