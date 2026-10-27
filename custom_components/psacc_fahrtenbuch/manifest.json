@@ -1,6 +1,7 @@
 {
   "domain": "psacc_fahrtenbuch",
   "name": "PSA Car Controller Fahrtenbuch",
+  "after_dependencies": ["hassio"],
   "codeowners": ["@ChristianV1977"],
   "config_flow": true,
   "dependencies": ["http", "frontend"],
