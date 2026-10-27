@@ -426,6 +426,7 @@ if (typeof window !== "undefined" && typeof customElements !== "undefined") {
           @keyframes psacc-pulse { 50% { opacity: .35; } }
           @media (prefers-reduced-motion: reduce) { .icon.pending, .icon.on ha-icon { animation: none; } }
           .notice { padding-top: 2px; padding-bottom: 4px; font-size: .85em; line-height: 1.2; color: #fff; text-align: left; overflow-wrap: anywhere; text-shadow: 0 0 4px rgba(0,0,0,.9), 1px 1px 2px rgba(0,0,0,.9); }
+          .notice.precond { margin-top: 5px; }
           .stack { position: absolute; display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
           .row { cursor: pointer; user-select: none; white-space: nowrap; display: flex; align-items: center; justify-content: flex-end; gap: 6px; }
           .limit { gap: 10px; }
