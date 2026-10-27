@@ -18,9 +18,11 @@ class Precond(CarEntity, SwitchEntity):
         return None if s is None else s == "Enabled"
 
     async def async_turn_on(self, **kwargs) -> None:
+        self.coordinator.mark_precond_request(True)
         await self.coordinator.client.preconditioning(True)
         await self.coordinator.async_request_refresh()
 
     async def async_turn_off(self, **kwargs) -> None:
+        self.coordinator.mark_precond_request(False)
         await self.coordinator.client.preconditioning(False)
         await self.coordinator.async_request_refresh()

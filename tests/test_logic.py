@@ -120,3 +120,78 @@ def test_remaining_time_real_formats():
     # Nicht ladend bleibt 0 erhalten
     assert parse_info(_info("Disconnected", "PT0S"))["verbleibende_ladezeit"] == 0
     assert parse_info(_info("InProgress", "PT0S"))["laderate"] == 6
+
+
+# --- Vorklimatisierung: Zustand und Add-on-Log ---
+from datetime import timedelta  # noqa: E402
+
+from custom_components.psacc_fahrtenbuch.precond import PrecondTracker, merge_log, parse_log  # noqa: E402
+
+T0 = datetime(2026, 1, 1, 12, 0, 0)
+
+
+def test_precond_idle_and_finished():
+    t = PrecondTracker()
+    assert t.update("Disabled", None, T0)["vorklimatisierung_zustand"] == "aus"
+    assert t.update("Finished", None, T0)["vorklimatisierung_zustand"] == "beendet"
+    assert t.update("Disabled", "low_battery", T0)["vorklimatisierung_zustand"] == "fehlgeschlagen"
+
+
+def test_precond_run_with_remaining_time():
+    t = PrecondTracker()
+    t.request(True, T0)
+    assert t.update("Disabled", None, T0 + timedelta(seconds=30))["vorklimatisierung_zustand"] == "angefordert"
+    r = t.update("Enabled", None, T0 + timedelta(seconds=60))
+    assert r["vorklimatisierung_zustand"] == "laeuft" and r["vorklimatisierung_restlaufzeit"] == 20
+    r = t.update("Enabled", None, T0 + timedelta(minutes=11, seconds=1))
+    assert r["vorklimatisierung_restlaufzeit"] == 10
+    assert t.update("Enabled", None, T0 + timedelta(minutes=45))["vorklimatisierung_restlaufzeit"] == 0
+    r = t.update("Finished", None, T0 + timedelta(minutes=46))
+    assert r["vorklimatisierung_zustand"] == "beendet" and r["vorklimatisierung_restlaufzeit"] is None
+
+
+def test_precond_not_started_after_two_minutes():
+    t = PrecondTracker()
+    t.request(True, T0)
+    assert t.update("Disabled", None, T0 + timedelta(seconds=120))["vorklimatisierung_zustand"] == "angefordert"
+    assert t.update("Disabled", None, T0 + timedelta(seconds=121))["vorklimatisierung_zustand"] == "nicht_gestartet"
+    # alter Status "Finished" darf einen neuen Befehl nicht verdecken
+    assert t.update("Finished", None, T0 + timedelta(minutes=5))["vorklimatisierung_zustand"] == "nicht_gestartet"
+    assert t.update("Finished", None, T0 + timedelta(minutes=31))["vorklimatisierung_zustand"] == "beendet"
+
+
+def test_precond_off_command_clears_request():
+    t = PrecondTracker()
+    t.request(True, T0)
+    t.request(False, T0 + timedelta(seconds=5))
+    assert t.update("Disabled", None, T0 + timedelta(minutes=3))["vorklimatisierung_zustand"] == "aus"
+
+
+LOG = """\
+2026-10-27 12:14:07,029 :: INFO :: topic: psa/RemoteServices/from/cid/OV-ACNT1/ThermalPrecond: {'action': 'activate'}
+2026-10-27 12:14:10,923 :: INFO :: mqtt msg received: psa/RemoteServices/to/cid/OV-ACNT1/ThermalPrecond/ProcessManagement b'{"process_date":"2026-10-27T11:14:10Z","vin":"VIN123","correlation_id":"abc","process_code":"900","process_message":"[process] VIN123 start"}'
+2026-10-27 12:14:38,148 :: INFO :: mqtt msg received: psa/RemoteServices/to/cid/OV-ACNT1/ThermalPrecond b'{"resp_date":"2026-10-27T11:14:38Z","vin":"VIN123","correlation_id":"abc","return_code":"300"}'
+2026-10-27 12:14:40,000 :: INFO :: mqtt msg received: psa/RemoteServices/events/MPHRTServices/VIN123 b'{"vin":"VIN123"}'
+2026-10-27 12:15:00,000 :: INFO :: charging status of VIN123 is InProgress
+"""
+
+
+def test_parse_log_only_thermalprecond_without_identifiers():
+    e = parse_log(LOG, "VIN123")
+    assert [x["art"] for x in e] == ["befehl", "prozess", "antwort"]
+    assert e[1]["code"] == "900" and e[1]["text"] == "[process] VIN start"
+    assert e[2]["code"] == "300" and e[2]["zeit"] == "2026-10-27T11:14:38Z"
+    blob = json.dumps(e)
+    assert "VIN123" not in blob and "OV-ACNT1" not in blob and "abc" not in blob
+
+
+def test_parse_log_garbage_never_raises():
+    assert parse_log("", None) == [] and parse_log(None, None) == []
+    assert parse_log("2026-10-27 12:00:00,1 :: INFO :: mqtt msg received: x/ThermalPrecond b'not json'", None)[0]["art"] == "log"
+
+
+def test_merge_log_dedupes_and_caps():
+    e = parse_log(LOG, "VIN123")
+    assert merge_log(e, e) == e
+    many = [{"zeit": str(i), "art": "log", "code": "", "text": ""} for i in range(50)]
+    assert len(merge_log([], many)) == 30 and merge_log([], many)[-1]["zeit"] == "49"

@@ -124,6 +124,23 @@
           "too_many_programs": "Zu viele unbenutzte Programme"
         }
       },
+      "vorklimatisierung_zustand": {
+        "name": "Vorklimatisierung Zustand",
+        "state": {
+          "aus": "Aus",
+          "angefordert": "Angefordert",
+          "laeuft": "Läuft",
+          "beendet": "Beendet",
+          "nicht_gestartet": "Nicht gestartet",
+          "fehlgeschlagen": "Fehlgeschlagen"
+        }
+      },
+      "vorklimatisierung_restlaufzeit": {
+        "name": "Vorklimatisierung Restlaufzeit"
+      },
+      "vorklimatisierung_antwort": {
+        "name": "Vorklimatisierung Antwort"
+      },
       "letztes_update": {
         "name": "Letztes Update"
       },
