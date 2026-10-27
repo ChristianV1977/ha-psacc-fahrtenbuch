@@ -58,7 +58,7 @@ class PsaccCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         except Exception as err:  # noqa: BLE001 (kein Hassio, Slug unbekannt, Supervisor-Fehler)
             _LOGGER.debug("Add-on-Log nicht lesbar: %s", type(err).__name__)
             return
-        new = parse_log(text, self.client.vin)
+        new = parse_log(text, self.client.vin, dt_util.DEFAULT_TIME_ZONE)
         merged = merge_log(self.precond_log, new)
         if merged != self.precond_log:
             self.precond_log = merged

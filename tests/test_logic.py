@@ -168,7 +168,7 @@ def test_precond_off_command_clears_request():
 
 
 LOG = """\
-2026-10-27 12:14:07,029 :: INFO :: topic: psa/RemoteServices/from/cid/OV-ACNT1/ThermalPrecond: {'action': 'activate'}
+2026-10-27 12:14:07,029 :: INFO :: Preconditioning: topic: psa/RemoteServices/from/cid/OV-ACNT1/ThermalPrecond: {'asap': 'activate', 'vin': 'VIN123'}
 2026-10-27 12:14:10,923 :: INFO :: mqtt msg received: psa/RemoteServices/to/cid/OV-ACNT1/ThermalPrecond/ProcessManagement b'{"process_date":"2026-10-27T11:14:10Z","vin":"VIN123","correlation_id":"abc","process_code":"900","process_message":"[process] VIN123 start"}'
 2026-10-27 12:14:38,148 :: INFO :: mqtt msg received: psa/RemoteServices/to/cid/OV-ACNT1/ThermalPrecond b'{"resp_date":"2026-10-27T11:14:38Z","vin":"VIN123","correlation_id":"abc","return_code":"300"}'
 2026-10-27 12:14:40,000 :: INFO :: mqtt msg received: psa/RemoteServices/events/MPHRTServices/VIN123 b'{"vin":"VIN123"}'
@@ -179,10 +179,16 @@ LOG = """\
 def test_parse_log_only_thermalprecond_without_identifiers():
     e = parse_log(LOG, "VIN123")
     assert [x["art"] for x in e] == ["befehl", "prozess", "antwort"]
+    assert e[0]["text"] == "asap=activate" and e[0]["zeit"] == "2026-10-27T11:14:07Z"  # lokal (CEST) -> UTC
     assert e[1]["code"] == "900" and e[1]["text"] == "[process] VIN start"
     assert e[2]["code"] == "300" and e[2]["zeit"] == "2026-10-27T11:14:38Z"
     blob = json.dumps(e)
     assert "VIN123" not in blob and "OV-ACNT1" not in blob and "abc" not in blob
+
+
+def test_parse_log_command_without_prefix_and_winter_time():
+    e = parse_log("2026-01-05 12:00:00,1 :: INFO :: topic: psa/x/ThermalPrecond: {'asap': 'deactivate'}", None)
+    assert e[0]["art"] == "befehl" and e[0]["text"] == "asap=deactivate" and e[0]["zeit"] == "2026-01-05T11:00:00Z"
 
 
 def test_parse_log_garbage_never_raises():
