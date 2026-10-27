@@ -5,7 +5,8 @@ import ast
 import json
 import math
 import re
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone, tzinfo
+from zoneinfo import ZoneInfo
 from typing import Any
 
 RUN_MINUTES = 20  # ungestoerter Lauf laut Auswertung 24.10.
@@ -60,7 +61,7 @@ class PrecondTracker:
 _ANSI = re.compile(r"\x1b\[[0-9;]*m")
 _LINE = re.compile(r"^(\d{4}-\d\d-\d\d \d\d:\d\d:\d\d),\d+ :: \w+ :: (.*)$")
 _MQTT = re.compile(r"^mqtt msg received: \S+ (b'.*'|b\".*\")$")
-_CMD = re.compile(r"^topic: \S+/ThermalPrecond: (\{.*\})$")
+_CMD = re.compile(r"^(?:Preconditioning: )?topic: \S+/ThermalPrecond: (\{.*\})$")
 MAX_TEXT = 200
 
 
@@ -78,17 +79,36 @@ def _payload(raw: str) -> dict | None:
     return data if isinstance(data, dict) else None
 
 
-def parse_log(text: str, vin: str | None = None) -> list[dict[str, str]]:
+def _cmd_text(raw: str) -> str:
+    """Befehls-Payload (Python-Dict mit einfachen Quotes) -> 'asap=<wert>'."""
+    try:
+        d = ast.literal_eval(raw)
+        return f"asap={d['asap']}"
+    except (ValueError, SyntaxError, KeyError, TypeError):
+        return raw
+
+
+def _utc(ts: str, tz: tzinfo) -> str:
+    """Log-Zeitstempel (lokal, ohne Zone) -> UTC-ISO mit Z."""
+    try:
+        return datetime.strptime(ts, "%Y-%m-%d %H:%M:%S").replace(tzinfo=tz).astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    except ValueError:
+        return ts
+
+
+def parse_log(text: str, vin: str | None = None, tz: tzinfo | None = None) -> list[dict[str, str]]:
     """ThermalPrecond-Zeilen aus dem Add-on-Log; ohne VIN, Konto-ID und correlation_id. Aelteste zuerst."""
+    tz = tz or ZoneInfo("Europe/Berlin")
     out: list[dict[str, str]] = []
     for line in _ANSI.sub("", text or "").splitlines():
         m = _LINE.match(line.strip())
         if not m or "ThermalPrecond" not in m.group(2):
             continue
         ts, msg = m.groups()
+        ts = _utc(ts, tz)
         entry = {"zeit": ts, "art": "log", "code": "", "text": ""}
         if c := _CMD.match(msg):
-            entry.update(art="befehl", text=_clean(c.group(1), vin))
+            entry.update(art="befehl", text=_clean(_cmd_text(c.group(1)), vin))
         elif (q := _MQTT.match(msg)) and (d := _payload(q.group(1))) is not None:
             entry["zeit"] = str(d.get("process_date") or d.get("resp_date") or ts)
             if "return_code" in d:

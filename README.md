@@ -114,6 +114,8 @@ HACS unterstützt nur öffentliche GitHub-Repositories. Die Entwicklung läuft a
 - **1.0.8** Karte: Hinweise zum A/C ("schaltet…", "Befehl nicht bestätigt", "Befehl fehlgeschlagen") stehen linksbündig direkt unter dem A/C-Symbol statt mittig, kleinere Schrift mit Textschatten, Umbruch auf schmalen Karten.
 - **1.0.9** Karte: laufendes A/C deutlich sichtbar (Lüfter dreht sich, Verlauf Blau→Rot mit Glow; bei reduzierter Bewegung ohne Drehung). Zustände: aus weiß, schaltet orange pulsierend, läuft Blau/Rot drehend, unbekannt grau.
 - **1.0.10** Karte: beim laufenden A/C dreht sich jetzt nur der Lüfter (eigenes Lüfter-Symbol, `inline-block` mit Drehpunkt Mitte; vorher drehte der Inline-Host nicht), der Schriftzug "A/C" steht statisch darunter. Bei reduzierter Bewegung (Systemeinstellung des Geräts) bleibt die Drehung aus.
+- **1.0.11** Vorklimatisierung: Sensoren Zustand, Restlaufzeit, Fehlergrund, Antwort aus dem Add-on-Log.
+- **1.0.12** Karte: unter dem A/C-Symbol eine Zeile mit dem Status (angefordert, nicht gestartet, fehlgeschlagen, beendet; bei aus leer), solange der Lauf nicht läuft, danach nur die Restlaufzeit in Minuten. Log-Auswertung: Befehlszeilen mit Präfix "Preconditioning:" und Python-Dict-Payload werden erkannt, Zeitstempel als UTC.
 
 ## Vorklimatisierung: Zustand, Restlaufzeit, Antworten
 

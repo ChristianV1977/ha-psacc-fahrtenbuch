@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import {
   resolveEntities, formatDuration, formatNumber, chargeInfo, hasNoData, plugColor, socColor, batteryIcon,
   stepLimit, normalizeConfig, isValid, formatUpdated, LAYOUT, stackStyle, headerParts, symbolsStyle, noticeStyle, climateVisual,
-  plugTitle, climateAction, pendingStatus,
+  plugTitle, climateAction, pendingStatus, precondLine,
 } from "../../custom_components/psacc_fahrtenbuch/frontend/psacc-fahrzeug-card.js";
 
 const ent = (entity_id, translation_key, device_id = "dev1", platform = "psacc_fahrtenbuch") =>
@@ -188,4 +188,16 @@ test("A/C: nur der Luefter dreht (inline-block + Keyframes), Text statisch, redu
   assert.match(src, /class="actext">A\/C</);
   assert.doesNotMatch(src, /\.actext[^}]*animation/);
   assert.match(src, /prefers-reduced-motion: reduce\) \{[^}]*\.icon\.on ha-icon \{ animation: none/);
+});
+
+test("Vorklima-Zeile: Status ausser aus/laeuft, beim Lauf nur Minuten", () => {
+  const st = (state) => ({ state });
+  assert.equal(precondLine(st("aus"), st("unknown")), "");
+  assert.equal(precondLine(st("angefordert"), undefined), "angefordert");
+  assert.equal(precondLine(st("nicht_gestartet"), undefined), "nicht gestartet");
+  assert.equal(precondLine(st("fehlgeschlagen"), undefined), "fehlgeschlagen");
+  assert.equal(precondLine(st("beendet"), undefined), "beendet");
+  assert.equal(precondLine(st("laeuft"), st("14")), "14 min");
+  assert.equal(precondLine(st("laeuft"), st("unknown")), "");
+  assert.equal(precondLine(st("unavailable"), st("14")), "");
 });

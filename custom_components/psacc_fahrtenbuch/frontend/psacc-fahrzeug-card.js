@@ -20,6 +20,8 @@ export const ELEMENTS = {
   plug: ["binary_sensor", "angesteckt", ["angesteckt"]],
   limit: ["number", "ladelimit", ["ladelimit"]],
   climate: ["switch", "vorklimatisierung", ["vorklimatisierung"]],
+  precond_state: ["sensor", "vorklimatisierung_zustand", ["vorklimatisierung_zustand"]],
+  precond_left: ["sensor", "vorklimatisierung_restlaufzeit", ["vorklimatisierung_restlaufzeit"]],
 };
 
 /** Positionen (Mitte des Elements) in % der Bildflaeche. */
@@ -39,6 +41,14 @@ const BAD = new Set(["unavailable", "unknown", undefined, null, ""]);
 export function noticeStyle(layout = LAYOUT) {
   return `padding:0 ${layout.symbols.side}%;`;
 }
+
+/** Zeile unter dem A/C-Symbol: Status, solange es nicht laeuft (bei "aus" leer); waehrend des Laufs nur die Restlaufzeit ("14 min"). */
+export function precondLine(state, left) {
+  if (!isValid(state)) return "";
+  if (state.state === "laeuft") return isValid(left) && Number.isFinite(Number(left.state)) ? `${Math.round(Number(left.state))} min` : "";
+  return PRECOND_TEXT[state.state] ?? "";
+}
+const PRECOND_TEXT = { angefordert: "angefordert", nicht_gestartet: "nicht gestartet", fehlgeschlagen: "fehlgeschlagen", beendet: "beendet" };
 
 export function symbolsStyle(layout = LAYOUT) {
   return `margin-top:${layout.symbols.gap}%;padding:0 ${layout.symbols.side}%;`;
@@ -365,6 +375,7 @@ if (typeof window !== "undefined" && typeof customElements !== "undefined") {
               ${c.show_plug && ids.plug ? html`<div class="icon ${dim}" title=${plugTitle(S.plug, S.charge_status)} @click=${() => this._moreInfo("plug")}>
                 <ha-icon icon="mdi:ev-plug-type2" style="color:${plugColor(S.plug, S.charge_status)}"></ha-icon></div>` : ""}
             </div>` : ""}
+            ${c.show_climate && ids.climate && precondLine(S.precond_state, S.precond_left) ? html`<div class="notice precond ${dim}" style=${noticeStyle()}>${precondLine(S.precond_state, S.precond_left)}</div>` : ""}
             ${this._notice ? html`<div class="notice" style=${noticeStyle()}>${this._notice}</div>` : ""}
             </div>
             ${(c.show_range && ids.range) || (c.show_soc && ids.soc) || (c.show_limit && ids.limit) ? html`<div class="stack" style=${stackStyle()}>
@@ -415,6 +426,7 @@ if (typeof window !== "undefined" && typeof customElements !== "undefined") {
           @keyframes psacc-pulse { 50% { opacity: .35; } }
           @media (prefers-reduced-motion: reduce) { .icon.pending, .icon.on ha-icon { animation: none; } }
           .notice { padding-top: 2px; padding-bottom: 4px; font-size: .85em; line-height: 1.2; color: #fff; text-align: left; overflow-wrap: anywhere; text-shadow: 0 0 4px rgba(0,0,0,.9), 1px 1px 2px rgba(0,0,0,.9); }
+          .notice.precond { margin-top: 5px; }
           .stack { position: absolute; display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
           .row { cursor: pointer; user-select: none; white-space: nowrap; display: flex; align-items: center; justify-content: flex-end; gap: 6px; }
           .limit { gap: 10px; }
